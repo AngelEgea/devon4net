@@ -1,5 +1,5 @@
-﻿using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 
 namespace Devon4Net.Infrastructure.JWT.Handlers
 {
@@ -11,6 +11,7 @@ namespace Devon4Net.Infrastructure.JWT.Handlers
         string GetClaimValue(string token, string claim);
         SecurityKey GetIssuerSigningKey();
         bool ValidateToken(string jwtToken, out ClaimsPrincipal claimsPrincipal, out SecurityToken securityToken);
+        bool ValidateToken(string jwtToken);
         string CreateRefreshToken();
     }
 }

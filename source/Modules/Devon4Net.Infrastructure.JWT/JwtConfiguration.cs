@@ -1,6 +1,5 @@
 ﻿using Devon4Net.Infrastructure.Common.Constants;
 using Devon4Net.Infrastructure.Common.Handlers;
-using Devon4Net.Infrastructure.JWT.Common.Const;
 using Devon4Net.Infrastructure.JWT.Handlers;
 using Devon4Net.Infrastructure.JWT.Options;
 using Microsoft.Extensions.Configuration;
@@ -41,7 +40,7 @@ namespace Devon4Net.Infrastructure.JWT
                         ValidAudience = jwtOptions.Audience,
                         ValidIssuer = jwtOptions.Issuer,
                         ClockSkew = TimeSpan.FromMinutes(jwtOptions.ClockSkew),
-                        ValidIssuers = new List<string> {jwtOptions.Issuer}
+                        ValidIssuers = new List<string> { jwtOptions.Issuer }
                     };
                 });
         }

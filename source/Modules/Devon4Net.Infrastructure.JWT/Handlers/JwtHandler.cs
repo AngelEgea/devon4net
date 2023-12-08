@@ -1,15 +1,15 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
+﻿using Devon4Net.Infrastructure.Common;
 using Devon4Net.Infrastructure.Common.Constants;
 using Devon4Net.Infrastructure.Common.Helpers;
 using Devon4Net.Infrastructure.Common.IO;
 using Devon4Net.Infrastructure.JWT.Common.Const;
 using Devon4Net.Infrastructure.JWT.Options;
-using Devon4Net.Infrastructure.Common;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 
 namespace Devon4Net.Infrastructure.JWT.Handlers
 {
@@ -49,7 +49,7 @@ namespace Devon4Net.Infrastructure.JWT.Handlers
                     Claims = clientClaims.Where(c => c.Type != ClaimTypes.Role).ToDictionary(x => x.Type, x => x.Value as object),
                     SigningCredentials = SigningCredentials
                 };
-                return new JwtSecurityTokenHandler(). CreateEncodedJwt(tokenDescriptor);
+                return new JwtSecurityTokenHandler().CreateEncodedJwt(tokenDescriptor);
             }
             catch (Exception ex)
             {
@@ -81,7 +81,7 @@ namespace Devon4Net.Infrastructure.JWT.Handlers
 
         public List<Claim> GetUserClaims(string jwtToken)
         {
-            _ = ValidateToken(jwtToken,  out var claimsPrincipal, out _);
+            _ = ValidateToken(jwtToken, out var claimsPrincipal, out _);
             return claimsPrincipal.Claims.ToList();
         }
 
@@ -119,7 +119,7 @@ namespace Devon4Net.Infrastructure.JWT.Handlers
                     RequireExpirationTime = JwtOptions.RequireExpirationTime,
                     RequireAudience = JwtOptions.RequireAudience,
                     TokenDecryptionKey = SecurityKey,
-                    IssuerSigningKey = SecurityKey,
+                    IssuerSigningKey = IssuerSigningKey,
                     ValidAudience = JwtOptions.Audience,
                     ValidIssuer = JwtOptions.Issuer
                 }, out securityToken);
@@ -133,6 +133,20 @@ namespace Devon4Net.Infrastructure.JWT.Handlers
             }
         }
 
+        public bool ValidateToken(string jwtToken)
+        {
+            try
+            {
+                return ValidateToken(jwtToken, out _, out _);
+            }
+            catch (Exception ex)
+            {
+                Devon4NetLogger.Error("JWT not valid");
+                Devon4NetLogger.Error(ex);
+                return false;
+            }
+        }
+
         #region private methods
         private void GetSigningCredentialsFromKey(string secretKey)
         {
@@ -141,7 +155,7 @@ namespace Devon4Net.Infrastructure.JWT.Handlers
                 var userEncryptionAlgorithm = GetEncryptionAlgorithm(JwtOptions.Security.SecretKeyEncryptionAlgorithm);
                 var key = new SymmetricSecurityKey(GetHashCodeFromString(secretKey, userEncryptionAlgorithm));
                 SecurityKey = key;
-                IssuerSigningKey = new SymmetricSecurityKey(key.Key);
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
                 SigningCredentials = new SigningCredentials(key, userEncryptionAlgorithm);
             }
             catch (Exception ex)
@@ -213,7 +227,7 @@ namespace Devon4Net.Infrastructure.JWT.Handlers
         }
 
         private static HashAlgorithm GetHashAlgorithm(string encryptionAlgorithm)
-        {            
+        {
             try
             {
                 if (string.IsNullOrWhiteSpace(encryptionAlgorithm))
