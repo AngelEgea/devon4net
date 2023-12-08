@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 
-namespace Devon4Net.Infrastructure.Logger;
+namespace Devon4Net.Infrastructure.AWS.Logger;
 
 public static class AwsLogConfiguration
 {
@@ -38,18 +38,18 @@ public static class AwsLogConfiguration
     private static ILoggerFactory ConfigureLog(AwsLogOptions awsLogOptions)
     {
         LoggerConfiguration = CreateLoggerConfiguration(awsLogOptions);
-        SetLogLevel(string.IsNullOrWhiteSpace(awsLogOptions.LogLevel)? "Debug" : awsLogOptions.LogLevel);        
+        SetLogLevel(string.IsNullOrWhiteSpace(awsLogOptions.LogLevel) ? "Debug" : awsLogOptions.LogLevel);
         return CreateLoggerFactory();
     }
 
     private static LoggerConfiguration CreateLoggerConfiguration(AwsLogOptions awsLogOptions)
     {
         var loggerConfiguration = new LoggerConfiguration().Enrich.FromLogContext().WriteTo.Console(); //NOSONAR false positive
-        var options =  new AWSLoggerConfig { Region = awsLogOptions.LogRegion, LogGroup = awsLogOptions.LogGroup};
-        if (AwsCredentials!=null) options.Credentials = AwsCredentials;
+        var options = new AWSLoggerConfig { Region = awsLogOptions.LogRegion, LogGroup = awsLogOptions.LogGroup };
+        if (AwsCredentials != null) options.Credentials = AwsCredentials;
         return loggerConfiguration.Enrich.FromLogContext().WriteTo.AWSSeriLog(options); //NOSONAR false positive
     }
-    
+
     private static ILoggerFactory CreateLoggerFactory()
     {
         Log.Logger = LoggerConfiguration.CreateLogger();
@@ -61,7 +61,7 @@ public static class AwsLogConfiguration
         switch (logEventLevel.ToLower())
         {
             case "warning":
-               LoggerConfiguration.MinimumLevel.Warning();
+                LoggerConfiguration.MinimumLevel.Warning();
                 return;
             case "verbose":
                 LoggerConfiguration.MinimumLevel.Verbose();

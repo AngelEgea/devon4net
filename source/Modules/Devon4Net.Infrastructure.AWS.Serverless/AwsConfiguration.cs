@@ -11,9 +11,9 @@ using Devon4Net.Infrastructure.AWS.Common.Managers.ParameterStoreManager;
 using Devon4Net.Infrastructure.Common.Constants;
 using Devon4Net.Infrastructure.AWS.SQS.Interfaces;
 using Devon4Net.Infrastructure.AWS.SQS.Handlers;
-using Devon4Net.Infrastructure.Logger;
 using Devon4Net.Infrastructure.AWS.Common.Helpers;
 using Devon4Net.Infrastructure.Common.Application.ApplicationTypes.API;
+using Devon4Net.Infrastructure.AWS.Logger;
 
 namespace Devon4Net.Infrastructure.AWS.Serverless
 {

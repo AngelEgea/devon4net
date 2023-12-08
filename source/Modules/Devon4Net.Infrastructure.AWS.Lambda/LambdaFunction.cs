@@ -10,9 +10,9 @@ using Devon4Net.Infrastructure.Common.Constants;
 using Devon4Net.Infrastructure.Common.Handlers;
 using Devon4Net.Infrastructure.Common;
 using Microsoft.Extensions.DependencyInjection;
-using Devon4Net.Infrastructure.Logger;
 using Devon4Net.Infrastructure.AWS.Common.Helpers;
 using Devon4Net.Infrastructure.Common.Configuration;
+using Devon4Net.Infrastructure.AWS.Logger;
 
 #if Lambda
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
