@@ -1,4 +1,4 @@
-﻿namespace ADC.PostNL.BuildingBlocks.Image.Common.Enum
+﻿namespace Devon4Net.Infrastructure.Image.Common.Enum
 {
     public enum ImageFileFormat
     {

@@ -18,7 +18,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\ADC.PostNL.BuildingBlocks.Common\ADC.PostNL.BuildingBlocks.Common.csproj" />
+		<ProjectReference Include="..\Devon4Net.Infrastructure.Common\Devon4Net.Infrastructure.Common.csproj" />
 	</ItemGroup>
 
 </Project>

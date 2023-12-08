@@ -1,7 +1,7 @@
-﻿using ADC.PostNL.BuildingBlocks.Image.Common.Enum;
+﻿using Devon4Net.Infrastructure.Image.Common.Enum;
 using SkiaSharp;
 
-namespace ADC.PostNL.BuildingBlocks.Image
+namespace Devon4Net.Infrastructure.Image
 {
     public interface ISkiaSharpImageHandler
     {

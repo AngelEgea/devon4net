@@ -1,10 +1,10 @@
-﻿using ADC.PostNL.BuildingBlocks.Common.Helpers;
-using ADC.PostNL.BuildingBlocks.Image.Common.Enum;
-using BitMiracle.LibTiff.Classic;
+﻿using BitMiracle.LibTiff.Classic;
+using Devon4Net.Infrastructure.Common.Helpers;
+using Devon4Net.Infrastructure.Image.Common.Enum;
 using SkiaSharp;
 using System.Runtime.InteropServices;
 
-namespace ADC.PostNL.BuildingBlocks.Image
+namespace Devon4Net.Infrastructure.Image
 {
     public class SkiaSharpImageHandler : ISkiaSharpImageHandler
     {
