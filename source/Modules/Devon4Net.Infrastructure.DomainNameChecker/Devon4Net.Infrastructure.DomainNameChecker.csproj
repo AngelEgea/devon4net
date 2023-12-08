@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Remove="DomainParser\PublicDomainData\effective_tld_names.dat" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="DomainParser\PublicDomainData\effective_tld_names.dat">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+		<PackageReference Include="nClam" Version="7.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ADC.PostNL.BuildingBlocks.Cors\ADC.PostNL.BuildingBlocks.Cors.csproj" />
+		<ProjectReference Include="..\ADC.PostNL.BuildingBlocks.Logger\ADC.PostNL.BuildingBlocks.Logger.csproj" />
+	</ItemGroup>
+
+</Project>

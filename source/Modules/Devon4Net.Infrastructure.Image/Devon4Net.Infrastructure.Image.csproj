@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="IImageHandler.cs" />
+		<Compile Remove="ImageHandler.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="BitMiracle.LibTiff.NET" Version="2.4.639" />
+		<PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
+		<PackageReference Include="SkiaSharp" Version="2.80.2" />
+		<PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.80.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ADC.PostNL.BuildingBlocks.Common\ADC.PostNL.BuildingBlocks.Common.csproj" />
+	</ItemGroup>
+
+</Project>
