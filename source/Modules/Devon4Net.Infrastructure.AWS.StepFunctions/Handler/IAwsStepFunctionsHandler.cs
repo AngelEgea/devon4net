@@ -1,6 +1,6 @@
 ﻿using Amazon.StepFunctions.Model;
 
-namespace ADC.PostNL.BuildingBlocks.AWS.StepFunctions.Handler
+namespace Devon4Net.Infrastructure.AWS.StepFunctions.Handler
 {
     public interface IAwsStepFunctionsHandler : IDisposable
     {

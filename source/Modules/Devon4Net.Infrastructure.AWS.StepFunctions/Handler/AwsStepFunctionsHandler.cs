@@ -1,11 +1,11 @@
-﻿using ADC.PostNL.BuildingBlocks.Common.Helpers;
-using ADC.PostNL.BuildingBlocks.Common.Helpers.Interfaces;
-using Amazon;
+﻿using Amazon;
 using Amazon.Runtime;
 using Amazon.StepFunctions;
 using Amazon.StepFunctions.Model;
+using Devon4Net.Infrastructure.Common.Helpers;
+using Devon4Net.Infrastructure.Common.Helpers.Interfaces;
 
-namespace ADC.PostNL.BuildingBlocks.AWS.StepFunctions.Handler
+namespace Devon4Net.Infrastructure.AWS.StepFunctions.Handler
 {
     public class AwsStepFunctionsHandler : IAwsStepFunctionsHandler
     {
