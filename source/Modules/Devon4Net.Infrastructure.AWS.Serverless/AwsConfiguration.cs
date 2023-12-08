@@ -1,19 +1,16 @@
-﻿using Amazon.Runtime.CredentialManagement;
+﻿using Amazon;
 using Amazon.Runtime;
+using Devon4Net.Infrastructure.AWS.Common.Helpers;
+using Devon4Net.Infrastructure.AWS.Common.Managers.ParameterStoreManager;
+using Devon4Net.Infrastructure.AWS.Common.Managers.SecretsManager;
 using Devon4Net.Infrastructure.AWS.Common.Options;
+using Devon4Net.Infrastructure.AWS.Logger;
+using Devon4Net.Infrastructure.Common;
+using Devon4Net.Infrastructure.Common.Application.ApplicationTypes.API;
+using Devon4Net.Infrastructure.Common.Constants;
 using Devon4Net.Infrastructure.Common.Handlers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Amazon;
-using Devon4Net.Infrastructure.Common;
-using Devon4Net.Infrastructure.AWS.Common.Managers.SecretsManager;
-using Devon4Net.Infrastructure.AWS.Common.Managers.ParameterStoreManager;
-using Devon4Net.Infrastructure.Common.Constants;
-using Devon4Net.Infrastructure.AWS.SQS.Interfaces;
-using Devon4Net.Infrastructure.AWS.SQS.Handlers;
-using Devon4Net.Infrastructure.AWS.Common.Helpers;
-using Devon4Net.Infrastructure.Common.Application.ApplicationTypes.API;
-using Devon4Net.Infrastructure.AWS.Logger;
 
 namespace Devon4Net.Infrastructure.AWS.Serverless
 {
@@ -48,11 +45,6 @@ namespace Devon4Net.Infrastructure.AWS.Serverless
             if (AwsOptions.UseParameterStore)
             {
                 (configuration as IConfigurationBuilder)?.AddParameterStoreHandler(credentials, awsRegion);
-            }
-
-            if (AwsOptions.UseSqs)
-            {
-                services.AddSingleton<ISqsClientHandler, SqsClientHandler>();
             }
 
             AddConfigurationToDependencyInjection(services, credentials, awsRegion);
