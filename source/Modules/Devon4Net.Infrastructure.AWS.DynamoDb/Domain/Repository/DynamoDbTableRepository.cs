@@ -1,39 +1,17 @@
-﻿using Amazon;
-using Amazon.DynamoDBv2;
+﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
-using Amazon.Lambda.Core;
 using Amazon.Runtime;
 using Devon4Net.Infrastructure.AWS.DynamoDb.Common;
+using Devon4Net.Infrastructure.AWS.DynamoDb.Constants;
 using Devon4Net.Infrastructure.Common.Helpers;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Repository
 {
     public class DynamoDbTableRepository : DynamoDbBaseRepository, IDynamoDbTableRepository
     {
-        public DynamoDbTableRepository(AWSCredentials awsCredentials, RegionEndpoint awsRegion, JsonHelper jsonHelper = null) : base(awsCredentials, awsRegion, jsonHelper)
-        {
-        }
-
-        public DynamoDbTableRepository(AWSCredentials awsCredentials, RegionEndpoint awsRegion, ILogger logger, JsonHelper jsonHelper = null) : base(awsCredentials, awsRegion, logger, jsonHelper)
-        {
-        }
-
-        public DynamoDbTableRepository(AWSCredentials awsCredentials, RegionEndpoint awsRegion, ILambdaLogger logger, JsonHelper jsonHelper = null) : base(awsCredentials, awsRegion, logger, jsonHelper)
-        {
-        }
-
-        public DynamoDbTableRepository(AmazonDynamoDBClient dynamoDBClient, ILogger logger, JsonHelper jsonHelper = null) : base(dynamoDBClient, logger, jsonHelper)
-        {
-        }
-
-        public DynamoDbTableRepository(AmazonDynamoDBClient dynamoDBClient, ILambdaLogger lambdaLogger, JsonHelper jsonHelper = null) : base(dynamoDBClient, lambdaLogger, jsonHelper)
+        public DynamoDbTableRepository(AWSCredentials awsCredentials, AmazonDynamoDBConfig amazonDynamoDBConfig, JsonHelper jsonHelper = null) : base(awsCredentials, amazonDynamoDBConfig, jsonHelper)
         {
         }
 
@@ -51,7 +29,7 @@ namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Repository
             {
                 Filter = queryFilter,
                 Select = SelectValues.SpecificAttributes,
-                AttributesToGet = new List<string> { AttributeValue },
+                AttributesToGet = new List<string> { DynamoDbGeneralObjectStorageAttributes.AttributeValue },
                 ConsistentRead = consistentRead
             };
 
@@ -119,12 +97,12 @@ namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Repository
 
                 var attributes = new Dictionary<string, AttributeValue>
                 {
-                    [AttributeKey] = new AttributeValue { S = key }
+                    [DynamoDbGeneralObjectStorageAttributes.AttributeKey] = new AttributeValue { S = key }
                 };
 
                 var result = await AmazonDynamoDBClient.GetItemAsync(tableName, attributes, consistentRead, cancellationToken).ConfigureAwait(false);
 
-                return result.Item.TryGetValue(AttributeValue, out AttributeValue value) ? JsonHelper.Deserialize<T>(value.S) : default;
+                return result.Item.TryGetValue(DynamoDbGeneralObjectStorageAttributes.AttributeValue, out AttributeValue value) ? JsonHelper.Deserialize<T>(value.S) : default;
             }
             catch (Exception ex)
             {
@@ -141,9 +119,9 @@ namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Repository
 
                 var attributes = new Dictionary<string, AttributeValue>
                 {
-                    [AttributeKey] = new AttributeValue { S = key },
-                    [AttributeType] = new AttributeValue { S = objectValue.GetType().ToString() },
-                    [AttributeValue] = new AttributeValue { S = await JsonHelper.Serialize(objectValue).ConfigureAwait(false) }
+                    [DynamoDbGeneralObjectStorageAttributes.AttributeKey] = new AttributeValue { S = key },
+                    [DynamoDbGeneralObjectStorageAttributes.AttributeType] = new AttributeValue { S = objectValue.GetType().ToString() },
+                    [DynamoDbGeneralObjectStorageAttributes.AttributeValue] = new AttributeValue { S = await JsonHelper.Serialize(objectValue).ConfigureAwait(false) }
                 };
 
                 var request = new PutItemRequest
@@ -168,7 +146,7 @@ namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Repository
                 var deleteItemRequest = new DeleteItemRequest
                 {
                     TableName = tableName,
-                    Key = new Dictionary<string, AttributeValue>() { { AttributeKey, new AttributeValue { S = key } } }
+                    Key = new Dictionary<string, AttributeValue>() { { DynamoDbGeneralObjectStorageAttributes.AttributeKey, new AttributeValue { S = key } } }
                 };
 
                 return await AmazonDynamoDBClient.DeleteItemAsync(deleteItemRequest, cancellationToken).ConfigureAwait(false);
@@ -179,8 +157,6 @@ namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Repository
                 throw;
             }
         }
-
-
 
         #region private methods
 

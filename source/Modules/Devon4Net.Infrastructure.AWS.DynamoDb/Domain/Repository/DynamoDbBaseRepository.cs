@@ -1,14 +1,10 @@
-﻿using Amazon.DynamoDBv2.DataModel;
-using Amazon.DynamoDBv2;
-using Amazon.Lambda.Core;
-using Microsoft.Extensions.Logging;
-using Amazon.Runtime;
-using Amazon;
-using System;
-using System.Collections.Generic;
+﻿using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
-using System.Threading.Tasks;
+using Amazon.Runtime;
+using Devon4Net.Infrastructure.AWS.DynamoDb.Constants;
+using Devon4Net.Infrastructure.Common;
 using Devon4Net.Infrastructure.Common.Helpers;
 
 namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Repository
@@ -16,70 +12,50 @@ namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Repository
     public class DynamoDbBaseRepository : IDynamoDbBaseRepository
     {
         protected IDynamoDBContext DynamoDBContext { get; }
-        protected ILogger Logger { get; }
-        protected ILambdaLogger LambdaLogger { get; }
-        protected AmazonDynamoDBClient AmazonDynamoDBClient { get; }
+        protected IAmazonDynamoDB AmazonDynamoDBClient { get; }
         protected JsonHelper JsonHelper { get; }
-        protected const string AttributeKey = "key";
-        protected const string AttributeType = "type";
-        protected const string AttributeValue = "value";
 
-        public DynamoDbBaseRepository(AWSCredentials awsCredentials, RegionEndpoint awsRegion, JsonHelper jsonHelper = null)
+        private bool _disposed = false;
+
+        public DynamoDbBaseRepository(AWSCredentials awsCredentials, AmazonDynamoDBConfig amazonDynamoDBConfig, JsonHelper jsonHelper = null)
         {
-            Logger = null;
-            LambdaLogger = null;
-            AmazonDynamoDBClient = new AmazonDynamoDBClient(awsCredentials, awsRegion);
+            AmazonDynamoDBClient = new AmazonDynamoDBClient(awsCredentials, amazonDynamoDBConfig);
             DynamoDBContext = new DynamoDBContext(AmazonDynamoDBClient);
             JsonHelper = jsonHelper ?? new JsonHelper();
         }
 
-        public DynamoDbBaseRepository(AWSCredentials awsCredentials, RegionEndpoint awsRegion, ILogger logger, JsonHelper jsonHelper = null)
+        public void Dispose()
         {
-            Logger = logger;
-            LambdaLogger = null;
-            AmazonDynamoDBClient = new AmazonDynamoDBClient(awsCredentials, awsRegion);
-            DynamoDBContext = new DynamoDBContext(AmazonDynamoDBClient);
-            JsonHelper = jsonHelper ?? new JsonHelper();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
-        public DynamoDbBaseRepository(AWSCredentials awsCredentials, RegionEndpoint awsRegion, ILambdaLogger logger, JsonHelper jsonHelper = null)
+        protected virtual void Dispose(bool disposing)
         {
-            LambdaLogger = logger;
-            Logger = null;
-            AmazonDynamoDBClient = new AmazonDynamoDBClient(awsCredentials, awsRegion);
-            DynamoDBContext = new DynamoDBContext(AmazonDynamoDBClient);
-            JsonHelper = jsonHelper ?? new JsonHelper();
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                DynamoDBContext?.Dispose();
+                AmazonDynamoDBClient?.Dispose();
+            }
+
+            _disposed = true;
         }
 
-        public DynamoDbBaseRepository(AmazonDynamoDBClient dynamoDBClient, ILogger logger, JsonHelper jsonHelper = null)
-        {
-            Logger = logger;
-            LambdaLogger = null;
-            DynamoDBContext = new DynamoDBContext(dynamoDBClient);
-            AmazonDynamoDBClient = dynamoDBClient;
-            JsonHelper = jsonHelper ?? new JsonHelper();
-        }
-
-        public DynamoDbBaseRepository(AmazonDynamoDBClient dynamoDBClient, ILambdaLogger lambdaLogger, JsonHelper jsonHelper = null)
-        {
-            LambdaLogger = lambdaLogger;
-            Logger = null;
-            DynamoDBContext = new DynamoDBContext(dynamoDBClient);
-            AmazonDynamoDBClient = dynamoDBClient;
-            JsonHelper = jsonHelper ?? new JsonHelper();
-        }
-
-        protected void LogDynamoException(ref Exception exception)
+        protected static void LogDynamoException(ref Exception exception)
         {
             var message = exception?.Message;
             var innerException = exception?.InnerException;
-            Logger?.LogError("Error performing the DynamoDB action: \"{message}\" | InnerException: \"{innerException}\"", message, innerException);
-            LambdaLogger?.Log($"Error performing the DynamoDB action:{message} {innerException}");
+            Devon4NetLogger.Error($"Error performing the DynamoDB action:{message} {innerException}");
         }
 
         protected List<T> TransformData<T>(List<Document> documents)
         {
-            var objToCast = documents.ConvertAll(d => d[AttributeValue].AsString());
+            var objToCast = documents.ConvertAll(d => d[DynamoDbGeneralObjectStorageAttributes.AttributeValue].AsString());
             return JsonHelper.Deserialize<T>(objToCast);
         }
 

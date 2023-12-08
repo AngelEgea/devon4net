@@ -1,7 +1,6 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
-using System.Collections.Generic;
 
 namespace Devon4Net.Infrastructure.AWS.DynamoDb.Common
 {
@@ -9,7 +8,6 @@ namespace Devon4Net.Infrastructure.AWS.DynamoDb.Common
     {
         private List<DynamoScanSearchCriteriaEntity> SearchCriteria { get; set; }
         private List<DynamoQueryCriteriaEntity> QueryCriteria { get; set; }
-        
 
         public DynamoSearchCriteria()
         {
@@ -17,9 +15,9 @@ namespace Devon4Net.Infrastructure.AWS.DynamoDb.Common
             QueryCriteria = new List<DynamoQueryCriteriaEntity>();
         }
 
-        public void AddSearchCriteria(string propertyName, object value, ScanOperator criteriaOperator = ScanOperator.Equal)
+        public void AddSearchCriteria(string propertyName, object value = null, ScanOperator criteriaOperator = ScanOperator.Equal)
         {
-            SearchCriteria.Add(new DynamoScanSearchCriteriaEntity { PropertyName = propertyName, Value = value, ScanOperator= criteriaOperator });
+            SearchCriteria.Add(new DynamoScanSearchCriteriaEntity { PropertyName = propertyName, Value = value, ScanOperator = criteriaOperator });
         }
 
         public void AddQueryCriteria(string propertyName, object value, QueryOperator criteriaOperator = QueryOperator.Equal, object secondValue = null)
@@ -55,7 +53,14 @@ namespace Devon4Net.Infrastructure.AWS.DynamoDb.Common
 
             foreach (var item in SearchCriteria)
             {
-                result.Add(new ScanCondition(item.PropertyName, item.ScanOperator, item.Value));
+                if (item.Value == null)
+                {
+                    result.Add(new ScanCondition(item.PropertyName, item.ScanOperator));
+                }
+                else
+                {
+                    result.Add(new ScanCondition(item.PropertyName, item.ScanOperator, item.Value));
+                }
             }
 
             return result;

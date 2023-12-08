@@ -1,5 +1,4 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
-using System;
 
 namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Entities
 {

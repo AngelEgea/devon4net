@@ -1,48 +1,28 @@
-﻿using Amazon.DynamoDBv2.DataModel;
-using Amazon.DynamoDBv2;
-using Amazon.Lambda.Core;
-using System;
-using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
-using Amazon.Runtime;
-using Amazon;
+﻿using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
-using System.Threading.Tasks;
-using System.Threading;
-using System.Linq;
+using Amazon.Runtime;
 using Devon4Net.Infrastructure.AWS.DynamoDb.Common;
 using Devon4Net.Infrastructure.Common.Helpers;
+using System.Runtime.CompilerServices;
 
 namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Repository
 {
     public class DynamoDbEntityRepository<T> : DynamoDbBaseRepository, IDynamoDbEntityRepository<T> where T : class
     {
-        public DynamoDbEntityRepository(AWSCredentials awsCredentials, RegionEndpoint awsRegion, JsonHelper jsonHelper = null) : base(awsCredentials, awsRegion, jsonHelper)
+        public DynamoDbEntityRepository(AWSCredentials awsCredentials, AmazonDynamoDBConfig amazonDynamoDBConfig, JsonHelper jsonHelper = null) : base(awsCredentials, amazonDynamoDBConfig, jsonHelper)
         {
         }
 
-        public DynamoDbEntityRepository(AmazonDynamoDBClient dynamoDBClient, ILogger logger, JsonHelper jsonHelper = null) : base(dynamoDBClient, logger, jsonHelper)
-        {
-        }
-
-        public DynamoDbEntityRepository(AmazonDynamoDBClient dynamoDBClient, ILambdaLogger lambdaLogger, JsonHelper jsonHelper = null) : base(dynamoDBClient, lambdaLogger, jsonHelper)
-        {
-        }
-
-        public DynamoDbEntityRepository(AWSCredentials awsCredentials, RegionEndpoint awsRegion, ILogger logger, JsonHelper jsonHelper = null) : base(awsCredentials, awsRegion, logger, jsonHelper)
-        {
-        }
-
-        public DynamoDbEntityRepository(AWSCredentials awsCredentials, RegionEndpoint awsRegion, ILambdaLogger logger, JsonHelper jsonHelper = null) : base(awsCredentials, awsRegion, logger, jsonHelper)
-        {
-        }
-
-        public async Task Create(T entity, CancellationToken cancellationToken = default)
+        public async Task Create(T entity, bool ignoreNullValues = false, CancellationToken cancellationToken = default)
         {
             try
             {
                 CheckInputGenericEntity(entity);
-                await DynamoDBContext.SaveAsync(entity, cancellationToken).ConfigureAwait(false);
+                await DynamoDBContext.SaveAsync(entity, new DynamoDBOperationConfig
+                {
+                    IgnoreNullValues = ignoreNullValues
+                }, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -51,13 +31,17 @@ namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Repository
             }
         }
 
-        public async Task Create(List<T> entityList, CancellationToken cancellationToken = default)
+        public async Task Create(IEnumerable<T> entities, bool ignoreNullValues = false, CancellationToken cancellationToken = default)
         {
             try
             {
-                var batch = DynamoDBContext.CreateBatchWrite<T>();
-                batch.AddPutItems(entityList);
-                await batch.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+                CheckInputGenericEntityList(entities);
+                var batchWrite = DynamoDBContext.CreateBatchWrite<T>(new DynamoDBOperationConfig
+                {
+                    IgnoreNullValues = ignoreNullValues
+                });
+                batchWrite.AddPutItems(entities);
+                await batchWrite.ExecuteAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -66,12 +50,15 @@ namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Repository
             }
         }
 
-        public async Task Update(T entity)
+        public async Task Update(T entity, bool ignoreNullValues = false, CancellationToken cancellationToken = default)
         {
             try
             {
                 CheckInputGenericEntity(entity);
-                await DynamoDBContext.SaveAsync(entity).ConfigureAwait(false);
+                await DynamoDBContext.SaveAsync(entity, new DynamoDBOperationConfig
+                {
+                    IgnoreNullValues = ignoreNullValues
+                }, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -96,12 +83,15 @@ namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Repository
             return DynamoDBContext.FromDocuments<T>(data).ToList();
         }
 
-        public async Task<IList<T>> Get(List<ScanCondition> searchCriteria)
+        public async Task<IList<T>> Get(List<ScanCondition> searchCriteria, ConditionalOperatorValues conditionalOperator = ConditionalOperatorValues.And, CancellationToken cancellationToken = default)
         {
             try
             {
                 CheckScanConditions(searchCriteria);
-                return await DynamoDBContext.ScanAsync<T>(searchCriteria, null).GetRemainingAsync().ConfigureAwait(false);
+                return await DynamoDBContext.ScanAsync<T>(searchCriteria, new DynamoDBOperationConfig
+                {
+                    ConditionalOperator = conditionalOperator
+                }).GetRemainingAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -110,9 +100,71 @@ namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Repository
             }
         }
 
-        public Task<IList<T>> Get(DynamoSearchCriteria searchCriteria)
+        public Task<IList<T>> Get(DynamoSearchCriteria searchCriteria, ConditionalOperatorValues conditionalOperator = ConditionalOperatorValues.And, CancellationToken cancellationToken = default)
         {
-            return Get(searchCriteria.GetScanConditionList());
+            return Get(searchCriteria.GetScanConditionList(), conditionalOperator, cancellationToken);
+        }
+
+        public async IAsyncEnumerable<T> Get(string id, string indexName, List<ScanCondition> searchCriteria = null, ConditionalOperatorValues conditionalOperator = ConditionalOperatorValues.And, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var indexQueryResult = DynamoDBContext.QueryAsync<T>(id, new DynamoDBOperationConfig
+            {
+                IndexName = indexName,
+                QueryFilter = searchCriteria,
+                ConditionalOperator = conditionalOperator
+            });
+
+            List<T> results;
+
+            do
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    yield break;
+                }
+
+                results = await indexQueryResult.GetNextSetAsync(CancellationToken.None).ConfigureAwait(false);
+
+                foreach (var result in results)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        yield break;
+                    }
+
+                    yield return result;
+                }
+            } while (!indexQueryResult.IsDone);
+        }
+
+        public async IAsyncEnumerable<T> GetEnum(List<ScanCondition> searchCriteria = null, ConditionalOperatorValues conditionalOperator = ConditionalOperatorValues.And, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var indexQueryResult = DynamoDBContext.ScanAsync<T>(searchCriteria, new DynamoDBOperationConfig
+            {
+                ConditionalOperator = conditionalOperator
+            });
+
+            List<T> results;
+
+            do
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    yield break;
+                }
+
+                results = await indexQueryResult.GetNextSetAsync(CancellationToken.None).ConfigureAwait(false);
+
+                foreach (var result in results)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        yield break;
+                    }
+
+                    yield return result;
+                }
+            } while (results.Count > 0);
         }
 
         public Task<T> GetById(int id, CancellationToken cancellationToken = default)
@@ -270,7 +322,7 @@ namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Repository
             }
         }
 
-        public async Task Put(List<T> entityList, CancellationToken cancellationToken = default)
+        public async Task Put(IEnumerable<T> entityList, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -284,8 +336,8 @@ namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Repository
                 throw;
             }
         }
-        #region private methods
 
+        #region private methods
         private Task<T> Get(object id, CancellationToken cancellationToken)
         {
             return DynamoDBContext.LoadAsync<T>(id, cancellationToken);
@@ -303,6 +355,7 @@ namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Repository
                 throw new ArgumentNullException(nameof(searchCriteria));
             }
         }
+
         private static void CheckInputIdString(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
@@ -310,6 +363,7 @@ namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Repository
                 throw new ArgumentNullException(nameof(id));
             }
         }
+
         private static void CheckInputIdGuid(Guid id)
         {
             if (id.Equals(Guid.Empty))
@@ -339,6 +393,14 @@ namespace Devon4Net.Infrastructure.AWS.DynamoDb.Domain.Repository
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
+            }
+        }
+
+        private static void CheckInputGenericEntityList(IEnumerable<T> entities)
+        {
+            if (entities == null)
+            {
+                throw new ArgumentNullException(nameof(entities));
             }
         }
         #endregion
