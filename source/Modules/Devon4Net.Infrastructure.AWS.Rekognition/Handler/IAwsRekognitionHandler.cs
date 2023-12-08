@@ -1,6 +1,6 @@
 ﻿using Amazon.Rekognition.Model;
 
-namespace ADC.PostNL.BuildingBlocks.AWS.Rekognition.Handler
+namespace Devon4Net.Infrastructure.AWS.Rekognition.Handler
 {
     public interface IAwsRekognitionHandler : IDisposable
     {

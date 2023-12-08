@@ -1,11 +1,11 @@
-﻿using ADC.PostNL.BuildingBlocks.Common;
-using ADC.PostNL.BuildingBlocks.Common.Extensions;
-using Amazon;
+﻿using Amazon;
 using Amazon.Rekognition;
 using Amazon.Rekognition.Model;
 using Amazon.Runtime;
+using Devon4Net.Infrastructure.Common;
+using Devon4Net.Infrastructure.Common.Extensions;
 
-namespace ADC.PostNL.BuildingBlocks.AWS.Rekognition.Handler
+namespace Devon4Net.Infrastructure.AWS.Rekognition.Handler
 {
     public class AwsRekognitionHandler : IAwsRekognitionHandler
     {
@@ -52,7 +52,7 @@ namespace ADC.PostNL.BuildingBlocks.AWS.Rekognition.Handler
                     Image = analyzeImage
                 };
 
-                if(minConfidence != null)
+                if (minConfidence != null)
                 {
                     requestModerationLabels.MinConfidence = minConfidence.Value;
                 }
@@ -63,8 +63,8 @@ namespace ADC.PostNL.BuildingBlocks.AWS.Rekognition.Handler
             }
             catch (Exception ex)
             {
-                PostNLLogger.Error("An error ocurred while trying to get moderation labels from an image");
-                PostNLLogger.Error(ex);
+                Devon4NetLogger.Error("An error ocurred while trying to get moderation labels from an image");
+                Devon4NetLogger.Error(ex);
                 throw;
             }
         }
@@ -98,8 +98,8 @@ namespace ADC.PostNL.BuildingBlocks.AWS.Rekognition.Handler
             }
             catch (Exception ex)
             {
-                PostNLLogger.Error("An error ocurred while trying to get moderation labels from an image");
-                PostNLLogger.Error(ex);
+                Devon4NetLogger.Error("An error ocurred while trying to get moderation labels from an image");
+                Devon4NetLogger.Error(ex);
                 throw;
             }
         }

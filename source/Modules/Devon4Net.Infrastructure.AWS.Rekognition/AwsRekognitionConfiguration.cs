@@ -1,7 +1,7 @@
-﻿using ADC.PostNL.BuildingBlocks.AWS.Rekognition.Handler;
+﻿using Devon4Net.Infrastructure.AWS.Rekognition.Handler;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ADC.PostNL.BuildingBlocks.AWS.Rekognition
+namespace Devon4Net.Infrastructure.AWS.Rekognition
 {
     public static class AwsRekognitionConfiguration
     {
