@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Devon4Net.Infrastructure.AWS.SQS.Dto
+﻿namespace Devon4Net.Infrastructure.AWS.SQS.Dto
 {
     public class SqsQueueStatus
     {

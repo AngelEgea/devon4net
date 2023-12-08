@@ -3,6 +3,7 @@
 	<PropertyGroup>
 		<Title>devon4net for AWS SQS abstraction library</Title>
 		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>true</ImplicitUsings>
 		<LangVersion>latest</LangVersion>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Authors>Capgemini, ADCenter Valencia, Traiectum Team</Authors>
@@ -35,15 +36,14 @@
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</None>
-	</ItemGroup>	
-	
+	</ItemGroup>
+
 	<ItemGroup>
     <PackageReference Include="AWSSDK.SQS" Version="3.7.100.33" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Devon4Net.Infrastructure.AWS.Common\Devon4Net.Infrastructure.AWS.Common.csproj" />
-    <ProjectReference Include="..\Devon4Net.Infrastructure.Common\Devon4Net.Infrastructure.Common.csproj" />
     <ProjectReference Include="..\Devon4Net.Infrastructure.Logger\Devon4Net.Infrastructure.Logger.csproj" />
   </ItemGroup>
 

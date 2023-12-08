@@ -7,21 +7,17 @@ using Devon4Net.Infrastructure.AWS.SQS.Dto;
 using Devon4Net.Infrastructure.AWS.SQS.Helper;
 using Devon4Net.Infrastructure.AWS.SQS.Interfaces;
 using Devon4Net.Infrastructure.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Devon4Net.Infrastructure.AWS.SQS.Handlers
 {
-    public class SqsClientHandler : ISqsClientHandler, IDisposable
+    public class SqsClientHandler : ISqsClientHandler
     {
         private AWSCredentials AWSCredentials { get; }
         private RegionEndpoint RegionEndpoint { get; }
         private AmazonSQSClient AmazonSQSClient { get; }
+        private bool _disposed = false;
 
         public SqsClientHandler(AWSCredentials awsCredentials = null, RegionEndpoint regionEndpoint = null)
         {
@@ -47,21 +43,21 @@ namespace Devon4Net.Infrastructure.AWS.SQS.Handlers
             return new AmazonSQSClient(AWSCredentials, sqsConfig);
         }
 
-        public async Task<List<string>> GetSqsQueues()
+        public async Task<List<string>> GetSqsQueues(CancellationToken cancellationToken = default)
         {
             try
             {
-                var result = await AmazonSQSClient.ListQueuesAsync(string.Empty).ConfigureAwait(false);
+                var result = await AmazonSQSClient.ListQueuesAsync(string.Empty, cancellationToken).ConfigureAwait(false);
                 return result.QueueUrls;
             }
             catch (Exception ex)
             {
-                Devon4NetLogger.Error(ex);
+                LogSqsException(ex);
                 throw;
             }
         }
 
-        public async Task<string> CreateSqsQueue(SqsQueueOptions sqsQueueOptions)
+        public async Task<string> CreateSqsQueue(SqsQueueOptions sqsQueueOptions, CancellationToken cancellationToken = default)
         {
             var queueAttrs = new Dictionary<string, string>();
 
@@ -74,35 +70,35 @@ namespace Devon4Net.Infrastructure.AWS.SQS.Handlers
 
                 if (sqsQueueOptions.RedrivePolicy != null && !string.IsNullOrEmpty(sqsQueueOptions.RedrivePolicy.DeadLetterQueueUrl) && sqsQueueOptions.RedrivePolicy.MaxReceiveCount > 0)
                 {
-                    queueAttrs.Add(QueueAttributeName.RedrivePolicy, await GetRedrivePolicy(sqsQueueOptions.RedrivePolicy).ConfigureAwait(false));
+                    queueAttrs.Add(QueueAttributeName.RedrivePolicy, await GetRedrivePolicy(sqsQueueOptions.RedrivePolicy, cancellationToken).ConfigureAwait(false));
                 }
 
-                var responseCreate = await AmazonSQSClient.CreateQueueAsync(new CreateQueueRequest { QueueName = sqsQueueOptions.QueueName, Attributes = queueAttrs }).ConfigureAwait(false);
+                var responseCreate = await AmazonSQSClient.CreateQueueAsync(new CreateQueueRequest { QueueName = sqsQueueOptions.QueueName, Attributes = queueAttrs }, cancellationToken).ConfigureAwait(false);
                 return responseCreate.QueueUrl;
             }
             catch (QueueNameExistsException ex)
             {
                 Devon4NetLogger.Error($"Error creating the queue: {sqsQueueOptions.QueueName}. The queue name already exists");
-                Devon4NetLogger.Error(ex);
+                LogSqsException(ex);
                 throw;
             }
             catch (QueueDeletedRecentlyException ex)
             {
                 Devon4NetLogger.Error($"Error creating the queue: {sqsQueueOptions.QueueName}. The queue has been deleted recently");
-                Devon4NetLogger.Error(ex);
+                LogSqsException(ex);
                 throw;
             }
         }
 
-        public async Task<SqsQueueStatus> GetQueueStatus(string queueName)
+        public async Task<SqsQueueStatus> GetQueueStatus(string queueName, CancellationToken cancellationToken = default)
         {
             CheckQueueName(queueName);
-            var queueUrl = await GetQueueUrl(queueName).ConfigureAwait(false);
+            var queueUrl = await GetQueueUrl(queueName, cancellationToken).ConfigureAwait(false);
 
             try
             {
-                var attributes = new List<string> { QueueAttributeName.ApproximateNumberOfMessages, QueueAttributeName.ApproximateNumberOfMessagesNotVisible, QueueAttributeName.LastModifiedTimestamp, QueueAttributeName.ApproximateNumberOfMessagesDelayed};
-                var response = await AmazonSQSClient.GetQueueAttributesAsync(new GetQueueAttributesRequest(queueUrl, attributes)).ConfigureAwait(false);
+                var attributes = new List<string> { QueueAttributeName.ApproximateNumberOfMessages, QueueAttributeName.ApproximateNumberOfMessagesNotVisible, QueueAttributeName.LastModifiedTimestamp, QueueAttributeName.ApproximateNumberOfMessagesDelayed };
+                var response = await AmazonSQSClient.GetQueueAttributesAsync(new GetQueueAttributesRequest(queueUrl, attributes), cancellationToken).ConfigureAwait(false);
 
                 return new SqsQueueStatus
                 {
@@ -118,7 +114,7 @@ namespace Devon4Net.Infrastructure.AWS.SQS.Handlers
             catch (Exception ex)
             {
                 Devon4NetLogger.Error($"Failed to GetNumberOfMessages for queue {queueName}: {ex.Message}");
-                Devon4NetLogger.Error(ex);
+                LogSqsException(ex);
                 throw;
             }
         }
@@ -141,19 +137,19 @@ namespace Devon4Net.Infrastructure.AWS.SQS.Handlers
             catch (Exception ex)
             {
                 Devon4NetLogger.Error($"Failed to GetSqsMessages for queue {queueUrl}: {ex.Message}");
-                Devon4NetLogger.Error(ex);
+                LogSqsException(ex);
                 throw;
             }
         }
 
-        public async Task SendMessage<T>(string queueUrl, object message, bool isFifo)
+        public async Task SendMessage<T>(string queueUrl, string message, bool isFifo, string accessKeyId = null, string secretAccessKey = null, CancellationToken cancellationToken = default)
         {
             try
             {
                 var sendMessageRequest = new SendMessageRequest
                 {
                     QueueUrl = queueUrl,
-                    MessageBody = JsonSerializer.Serialize(message),
+                    MessageBody = message,
                     MessageAttributes = SqsMessageTypeAttributehelper.CreateAttributes<T>()
                 };
 
@@ -163,14 +159,23 @@ namespace Devon4Net.Infrastructure.AWS.SQS.Handlers
                     sendMessageRequest.MessageDeduplicationId = Guid.NewGuid().ToString();
                 }
 
-                await AmazonSQSClient.SendMessageAsync(sendMessageRequest).ConfigureAwait(false);
+                var sqsClient = string.IsNullOrWhiteSpace(accessKeyId) || string.IsNullOrWhiteSpace(secretAccessKey) ?
+                    AmazonSQSClient :
+                    new AmazonSQSClient(accessKeyId, secretAccessKey);
+
+                await sqsClient.SendMessageAsync(sendMessageRequest, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 Devon4NetLogger.Error($"Failed to PostMessagesAsync for queue {queueUrl}: {ex.Message}");
-                Devon4NetLogger.Error(ex);
+                LogSqsException(ex);
                 throw;
             }
+        }
+
+        public Task SendMessage<T>(string queueUrl, object message, bool isFifo, string accessKeyId = null, string secretAccessKey = null, CancellationToken cancellationToken = default)
+        {
+            return SendMessage<T>(queueUrl, JsonSerializer.Serialize(message), isFifo, accessKeyId, secretAccessKey, cancellationToken);
         }
 
         public async Task<bool> DeleteMessage(string queueUrl, string receiptHandle, CancellationToken cancellationToken = default)
@@ -183,16 +188,16 @@ namespace Devon4Net.Infrastructure.AWS.SQS.Handlers
             catch (Exception ex)
             {
                 Devon4NetLogger.Error($"Failed to DeleteMessage for queue {queueUrl}: {ex.Message}");
-                Devon4NetLogger.Error(ex);
+                LogSqsException(ex);
                 throw;
             }
         }
 
-        public async Task DeleteSqsQueue(string queueUrl, bool waitForDeletion = false)
+        public async Task DeleteSqsQueue(string queueUrl, bool waitForDeletion = false, CancellationToken cancellationToken = default)
         {
             try
             {
-                await AmazonSQSClient.DeleteQueueAsync(queueUrl).ConfigureAwait(false);
+                await AmazonSQSClient.DeleteQueueAsync(queueUrl, cancellationToken).ConfigureAwait(false);
 
                 if (!waitForDeletion) return;
 
@@ -200,28 +205,60 @@ namespace Devon4Net.Infrastructure.AWS.SQS.Handlers
 
                 do
                 {
-                    var queues = await GetSqsQueues().ConfigureAwait(false);
+                    var queues = await GetSqsQueues(cancellationToken).ConfigureAwait(false);
                     queueExists = queues.Any(q => q == queueUrl);
-                    await Task.Delay(1000);
+                    await Task.Delay(1000, cancellationToken);
                 } while (queueExists);
             }
             catch (Exception ex)
             {
                 Devon4NetLogger.Error($"Error deleting the queue: {queueUrl}");
-                Devon4NetLogger.Error(ex);
+                LogSqsException(ex);
             }
         }
 
-        public async Task UpdateSqsQueueAttribute(string queueUrl, string attribute, string value)
+        public async Task UpdateSqsQueueAttribute(string queueUrl, string attribute, string value, CancellationToken cancellationToken = default)
         {
             try
             {
-                await AmazonSQSClient.SetQueueAttributesAsync(queueUrl, new Dictionary<string, string> { { attribute, value } }).ConfigureAwait(false);
+                await AmazonSQSClient.SetQueueAttributesAsync(queueUrl, new Dictionary<string, string> { { attribute, value } }, cancellationToken).ConfigureAwait(false);
             }
             catch (InvalidAttributeNameException ex)
             {
                 Devon4NetLogger.Error($"Error updating the attribute: {attribute}. The queue has been deleted recently name");
-                Devon4NetLogger.Error(ex);
+                LogSqsException(ex);
+            }
+        }
+
+        public async Task<string> GetQueueArn(string queueUrl, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var responseGetAtt = await AmazonSQSClient.GetQueueAttributesAsync(queueUrl, new List<string> { QueueAttributeName.QueueArn }, cancellationToken).ConfigureAwait(false);
+                return responseGetAtt.QueueARN;
+            }
+            catch (InvalidAttributeNameException ex)
+            {
+                Devon4NetLogger.Error($"Error getting the queue arn: {queueUrl}");
+                LogSqsException(ex);
+            }
+
+            return null;
+        }
+
+        public async Task<string> GetQueueUrl(string queueName, CancellationToken cancellationToken = default)
+        {
+            CheckQueueName(queueName);
+
+            try
+            {
+                var response = await AmazonSQSClient.GetQueueUrlAsync(queueName, cancellationToken).ConfigureAwait(false);
+                return response.QueueUrl;
+            }
+            catch (QueueDoesNotExistException ex)
+            {
+                LogSqsException(ex);
+                throw new InvalidOperationException($"Could not retrieve the URL for the queue {queueName} as it does not exist or check if you do not have access to the queue", ex);
             }
         }
 
@@ -231,40 +268,26 @@ namespace Devon4Net.Infrastructure.AWS.SQS.Handlers
             GC.SuppressFinalize(this);
         }
 
-        public async Task<string> GetQueueArn(string queueUrl)
-        {
-            try
-            {
-                var responseGetAtt = await AmazonSQSClient.GetQueueAttributesAsync(queueUrl, new List<string> { QueueAttributeName.QueueArn }).ConfigureAwait(false);
-                return responseGetAtt.QueueARN;
-            }
-            catch (InvalidAttributeNameException ex)
-            {
-                Devon4NetLogger.Error($"Error getting the queue arn: {queueUrl}");
-                Devon4NetLogger.Error(ex);
-            }
-
-            return null;
-        }
-
-        public async Task<string> GetQueueUrl(string queueName)
-        {
-            CheckQueueName(queueName);
-
-            try
-            {
-                var response = await AmazonSQSClient.GetQueueUrlAsync(queueName).ConfigureAwait(false);
-                return response.QueueUrl;
-            }
-            catch (QueueDoesNotExistException ex)
-            {
-                Devon4NetLogger.Error(ex);
-                throw new InvalidOperationException($"Could not retrieve the URL for the queue {queueName} as it does not exist or check if you do not have access to the queue", ex);
-            }
-        }
         protected virtual void Dispose(bool disposing)
         {
-            AmazonSQSClient.Dispose();
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                AmazonSQSClient?.Dispose();
+            }
+
+            _disposed = true;
+        }
+
+        private static void LogSqsException(Exception exception)
+        {
+            var message = exception?.Message;
+            var innerException = exception?.InnerException;
+            Devon4NetLogger.Error($"Error performing the SQS action:{message} {innerException}");
         }
 
         private static void CheckQueueName(string queueName)
@@ -276,11 +299,11 @@ namespace Devon4Net.Infrastructure.AWS.SQS.Handlers
             }
         }
 
-        private async Task<string> GetRedrivePolicy(RedrivePolicyOptions redrivePolicyOptions)
+        private async Task<string> GetRedrivePolicy(RedrivePolicyOptions redrivePolicyOptions, CancellationToken cancellationToken = default)
         {
             return JsonSerializer.Serialize(new RedrivePolicy
             {
-                DeadLetterQueueUrl = await GetQueueArn(redrivePolicyOptions.DeadLetterQueueUrl).ConfigureAwait(false),
+                DeadLetterQueueUrl = await GetQueueArn(redrivePolicyOptions.DeadLetterQueueUrl, cancellationToken).ConfigureAwait(false),
                 MaxReceiveCount = redrivePolicyOptions.MaxReceiveCount
             });
         }

@@ -1,7 +1,4 @@
 ﻿using Amazon.SQS.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Devon4Net.Infrastructure.AWS.SQS.Helper
 {
