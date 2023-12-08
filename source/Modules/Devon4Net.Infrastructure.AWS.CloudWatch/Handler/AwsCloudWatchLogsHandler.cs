@@ -1,11 +1,11 @@
-﻿using ADC.PostNL.BuildingBlocks.Common;
-using Amazon;
+﻿using Amazon;
 using Amazon.CloudWatchLogs;
 using Amazon.CloudWatchLogs.Model;
 using Amazon.Runtime;
+using Devon4Net.Infrastructure.Common;
 using System.Net;
 
-namespace ADC.PostNL.BuildingBlocks.AWS.CloudWatch.Handler
+namespace Devon4Net.Infrastructure.AWS.CloudWatch.Handler
 {
     public class AwsCloudWatchLogsHandler : IAwsCloudWatchLogsHandler
     {
@@ -47,14 +47,14 @@ namespace ADC.PostNL.BuildingBlocks.AWS.CloudWatch.Handler
                 }
                 else
                 {
-                    PostNLLogger.Information($"The retention of the log group {logGroupName} could not be adjusted (status code: {putLogGroupRetentionResponse.HttpStatusCode})");
+                    Devon4NetLogger.Information($"The retention of the log group {logGroupName} could not be adjusted (status code: {putLogGroupRetentionResponse.HttpStatusCode})");
                     return false;
                 }
             }
             catch (Exception ex)
             {
-                PostNLLogger.Error($"An error ocurred while trying to update log group retention of {logGroupName}");
-                PostNLLogger.Error(ex);
+                Devon4NetLogger.Error($"An error ocurred while trying to update log group retention of {logGroupName}");
+                Devon4NetLogger.Error(ex);
 
                 return false;
             }
@@ -71,7 +71,7 @@ namespace ADC.PostNL.BuildingBlocks.AWS.CloudWatch.Handler
             else
             {
                 var errorMessage = $"Error trying to Describe LogGroups (status code: {listLogGroupsResponse.HttpStatusCode})";
-                PostNLLogger.Error(errorMessage);
+                Devon4NetLogger.Error(errorMessage);
                 throw new System.InvalidOperationException(errorMessage);
             }
         }

@@ -1,6 +1,6 @@
 ﻿using Amazon.CloudWatchLogs.Model;
 
-namespace ADC.PostNL.BuildingBlocks.AWS.CloudWatch.Handler
+namespace Devon4Net.Infrastructure.AWS.CloudWatch.Handler
 {
     public interface IAwsCloudWatchLogsHandler : IDisposable
     {

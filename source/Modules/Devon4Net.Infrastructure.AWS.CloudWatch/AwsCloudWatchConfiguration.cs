@@ -1,7 +1,7 @@
-﻿using ADC.PostNL.BuildingBlocks.AWS.CloudWatch.Handler;
+﻿using Devon4Net.Infrastructure.AWS.CloudWatch.Handler;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ADC.PostNL.BuildingBlocks.AWS.CloudWatch
+namespace Devon4Net.Infrastructure.AWS.CloudWatch
 {
     public static class AwsCloudWatchConfiguration
     {
