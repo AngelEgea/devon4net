@@ -8,6 +8,8 @@ namespace Devon4Net.Infrastructure.Common.Constants
         public const string ApplicationOctetStream = "application/octet-stream";
         public const string ApplicationJson = "application/json";
         public const string ApplicationXwww = "application/x-www-form-urlencoded";
+        public const string ApplicationZip = "application/zip";
+        public const string ApplicationCsv = "application/csv";
         public const string TextCss = "text/css";
         public const string TextPlain = "text/plain";
         public const string TextHtml = "text/html";

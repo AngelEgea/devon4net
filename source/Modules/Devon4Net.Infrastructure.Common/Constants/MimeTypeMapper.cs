@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Devon4Net.Infrastructure.Common.Constants
+﻿namespace Devon4Net.Infrastructure.Common.Constants
 {
     public static class MimeTypeMapper
     {
@@ -1293,7 +1287,7 @@ namespace Devon4Net.Infrastructure.Common.Constants
 
             var extension = Path.GetExtension(fileName);
 
-            return !String.IsNullOrEmpty(extension) && _mappings.TryGetValue(extension, out string mimeType) ? mimeType : "text/plain";
+            return !string.IsNullOrEmpty(extension) && _mappings.TryGetValue(extension, out string mimeType) ? mimeType : "text/plain";
         }
     }
 }

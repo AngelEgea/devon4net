@@ -5,8 +5,8 @@ namespace Devon4Net.Infrastructure.Common.Configuration
 {
     public class DevonfwConfigurationBuilder
     {
-        public  IConfiguration Configuration { get; set; }
-        public  ConfigurationBuilder ConfigurationBuilder { get; set; }
+        public IConfiguration Configuration { get; set; }
+        public ConfigurationBuilder ConfigurationBuilder { get; set; }
 
         public DevonfwConfigurationBuilder()
         {
@@ -25,7 +25,7 @@ namespace Devon4Net.Infrastructure.Common.Configuration
         private void LoadConfiguration()
         {
             AddConfigurationSettingsFile("appsettings.json", true, true);
-            var environment = string.IsNullOrWhiteSpace(Configuration["Environment"]) ? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") : Configuration["Environment"]; 
+            var environment = string.IsNullOrWhiteSpace(Configuration["Environment"]) ? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") : Configuration["Environment"];
             AddConfigurationSettingsFile($"appsettings.{environment}.json", true, true);
             CheckExtraSettingsFiles();
         }

@@ -16,7 +16,7 @@ namespace Devon4Net.Infrastructure.Common.Application.Middleware.Certificates
             this.logger = logger;
         }
 
-        public async Task Invoke(HttpContext context,  IOptions<CertificatesOptions> devonfwOptions)
+        public async Task Invoke(HttpContext context, IOptions<CertificatesOptions> devonfwOptions)
         {
             var options = devonfwOptions.Value;
             if (options?.ClientCertificate.ClientCertificates == null)

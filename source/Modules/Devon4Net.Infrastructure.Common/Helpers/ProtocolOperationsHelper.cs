@@ -7,7 +7,7 @@ namespace Devon4Net.Infrastructure.Common.Helpers
     {
         public static SslProtocols GetTlsProtocol(string httpProtocol)
         {
-            return (httpProtocol.ToLower()) switch
+            return httpProtocol.ToLower() switch
             {
                 "tls12" => SslProtocols.Tls12,
                 "tls13" => SslProtocols.Tls13,
@@ -20,7 +20,7 @@ namespace Devon4Net.Infrastructure.Common.Helpers
         {
             if (httpProtocol == null) return HttpProtocols.Http1;
 
-            return (httpProtocol.ToLower()) switch
+            return httpProtocol.ToLower() switch
             {
                 "http1" => HttpProtocols.Http1,
                 "http2" => HttpProtocols.Http2,

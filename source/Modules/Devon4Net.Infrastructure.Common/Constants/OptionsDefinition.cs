@@ -12,9 +12,9 @@ namespace Devon4Net.Infrastructure.Common.Constants
         public const string Grpc = "Grpc";
         public const string MediatR = "MediatR";
         public const string Kafka = "Kafka";
-        public const string AwsOptions= "AWS";
-        public const string AwsSecrets= "UseSecrets";
+        public const string AwsOptions = "AWS";
+        public const string AwsSecrets = "UseSecrets";
         public const string CdkOptions = "CdkOptions";
-        
+
     }
 }

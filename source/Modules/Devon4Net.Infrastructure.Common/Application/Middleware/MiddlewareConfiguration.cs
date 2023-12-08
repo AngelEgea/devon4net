@@ -1,13 +1,13 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Devon4Net.Infrastructure.Common.Handlers;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
-using Devon4Net.Infrastructure.Common.Application.Options;
-using Devon4Net.Infrastructure.Common.Application.Middleware.KillSwicth;
+﻿using Devon4Net.Infrastructure.Common.Application.Middleware.Certificates;
 using Devon4Net.Infrastructure.Common.Application.Middleware.Exception;
 using Devon4Net.Infrastructure.Common.Application.Middleware.Headers;
-using Devon4Net.Infrastructure.Common.Application.Middleware.Certificates;
+using Devon4Net.Infrastructure.Common.Application.Middleware.KillSwicth;
+using Devon4Net.Infrastructure.Common.Application.Options;
+using Devon4Net.Infrastructure.Common.Handlers;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Devon4Net.Infrastructure.Common.Application.Middleware
 {

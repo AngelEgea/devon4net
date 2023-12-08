@@ -1,8 +1,8 @@
-using System.Text.Json;
+using Devon4Net.Infrastructure.Common.Application.Options;
 using Devon4Net.Infrastructure.Common.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using Devon4Net.Infrastructure.Common.Application.Options;
+using System.Text.Json;
 
 namespace Devon4Net.Infrastructure.Common.Application.Middleware.KillSwicth
 {
@@ -63,8 +63,8 @@ namespace Devon4Net.Infrastructure.Common.Application.Middleware.KillSwicth
                                        exceptionType.Contains("FileNotFoundException") => HandleContext(ref context,
                     StatusCodes.Status400BadRequest),
                 { } exceptionType when exceptionType.Contains("IWebApiException") => HandleContext(ref context,
-                    ((IWebApiException) exception).StatusCode, exception.Message,
-                    ((IWebApiException) exception).ShowMessage),
+                    ((IWebApiException)exception).StatusCode, exception.Message,
+                    ((IWebApiException)exception).ShowMessage),
                 _ => HandleContext(ref context, StatusCodes.Status500InternalServerError, exception.Message)
             };
         }
@@ -74,7 +74,7 @@ namespace Devon4Net.Infrastructure.Common.Application.Middleware.KillSwicth
             context.Response.Headers.Clear();
             context.Response.StatusCode = statusCode ?? StatusCodes.Status500InternalServerError;
 
-            if (!showMessage  || statusCode == StatusCodes.Status204NoContent || string.IsNullOrEmpty(errorMessage) ) return Task.CompletedTask;
+            if (!showMessage || statusCode == StatusCodes.Status204NoContent || string.IsNullOrEmpty(errorMessage)) return Task.CompletedTask;
 
             context.Response.ContentType = "application/json";
             return context.Response.WriteAsync(JsonSerializer.Serialize(new { error = errorMessage }));

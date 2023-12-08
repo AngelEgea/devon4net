@@ -8,7 +8,13 @@ namespace Devon4Net.Infrastructure.Common.Handlers
     {
         public static T GetTypedOptions<T>(this IServiceCollection services, IConfiguration configuration, string sectionName) where T : class, new()
         {
-            services.Configure<T>(configuration!?.GetSection(sectionName)!);
+            var areOptionsInjected = services.Any(x => x.ServiceType == typeof(IConfigureOptions<T>));
+
+            if (!areOptionsInjected)
+            {
+                services.Configure<T>(configuration!?.GetSection(sectionName)!);
+            }
+
             using var serviceProvider = services.BuildServiceProvider();
             return serviceProvider.GetService<IOptions<T>>()?.Value;
         }

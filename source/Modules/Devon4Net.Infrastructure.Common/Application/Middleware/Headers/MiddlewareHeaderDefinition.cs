@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Devon4Net.Infrastructure.Common.Application.Middleware.Headers
 {
@@ -14,7 +13,7 @@ namespace Devon4Net.Infrastructure.Common.Application.Middleware.Headers
         public static string PermittedCrossDomainPoliciesHeader { get; set; }
         public static string ReferrerPolicyHeader { get; set; }
 
-        public static void SetupHeaders(this  IConfiguration configuration)
+        public static void SetupHeaders(this IConfiguration configuration)
         {
             AccessControlExposeHeader = configuration["Headers:AccessControlExposeHeader"];
             StrictTransportSecurityHeader = configuration["Headers:StrictTransportSecurityHeader"];

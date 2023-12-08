@@ -12,7 +12,7 @@ using Devon4Net.Infrastructure.UnitOfWork;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.InitializeDevonfwApi(builder.Host);
+builder.WebHost.InitializeDevonfwApi();
 
 #region services
 builder.Services.AddControllers();

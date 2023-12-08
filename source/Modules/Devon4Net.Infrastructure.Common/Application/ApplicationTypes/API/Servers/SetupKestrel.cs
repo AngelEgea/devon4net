@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Devon4Net.Infrastructure.Common.Helpers;
+using Devon4Net.Infrastructure.Common.IO;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Extensions.Configuration;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Devon4Net.Infrastructure.Common.IO;
-using Devon4Net.Infrastructure.Common;
-using Devon4Net.Infrastructure.Common.Helpers;
 
 namespace Devon4Net.Infrastructure.Common.Application.ApplicationTypes.API.Servers
 {

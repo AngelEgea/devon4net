@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-namespace Devon4Net.Infrastructure.Common.Helpers.Interfaces
+﻿namespace Devon4Net.Infrastructure.Common.Helpers.Interfaces
 {
     public interface IJsonHelper
     {

@@ -1,6 +1,6 @@
-﻿using System.Globalization;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 
 namespace Devon4Net.Infrastructure.Common.Extensions
 {
@@ -21,7 +21,7 @@ namespace Devon4Net.Infrastructure.Common.Extensions
         }
         public static CultureInfo GetContextCulture(this HttpRequest request)
         {
-            return  request.HttpContext.Features.Get<IRequestCultureFeature>().RequestCulture.Culture;
+            return request.HttpContext.Features.Get<IRequestCultureFeature>().RequestCulture.Culture;
         }
     }
 }

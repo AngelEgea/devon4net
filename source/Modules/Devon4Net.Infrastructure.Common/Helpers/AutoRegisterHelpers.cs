@@ -1,9 +1,10 @@
 ﻿// Copyright (c) 2018 Inventory Innovations, Inc. - build by Jon P Smith (GitHub JonPSmith)
 // Licensed under MIT licence. See License.txt in the project root for license information.
 
-using System.Reflection;
 using Devon4Net.Infrastructure.Common.Configuration;
+using Devon4Net.Infrastructure.Common.Helpers;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace Devon4Net.Infrastructure.Common.Helpers
 {
@@ -22,7 +23,7 @@ namespace Devon4Net.Infrastructure.Common.Helpers
         public static AutoRegisterData RegisterAssemblyPublicNonGenericClasses(this IServiceCollection services, params Assembly[] assemblies)
         {
             if (assemblies.Length == 0)
-                assemblies = new[] {Assembly.GetCallingAssembly()};
+                assemblies = new[] { Assembly.GetCallingAssembly() };
 
             var allPublicTypes = assemblies.SelectMany(x => x.GetExportedTypes()
                 .Where(y => y.IsClass && !y.IsAbstract && !y.IsGenericType && !y.IsNested));
@@ -50,13 +51,13 @@ namespace Devon4Net.Infrastructure.Common.Helpers
         /// <param name="autoRegData">AutoRegister data produced by <see cref="RegisterAssemblyPublicNonGenericClasses"/></param> method
         /// <param name="lifetime">Allows you to define the lifetime of the service - defaults to ServiceLifetime.Transient</param>
         /// <returns></returns>
-        public static IServiceCollection AsPublicImplementedInterfaces(this AutoRegisterData autoRegData, 
+        public static IServiceCollection AsPublicImplementedInterfaces(this AutoRegisterData autoRegData,
             ServiceLifetime lifetime = ServiceLifetime.Transient)
         {
             if (autoRegData == null) throw new ArgumentNullException(nameof(autoRegData));
-            foreach (var classType in (autoRegData.TypeFilter == null 
-                ? autoRegData.TypesToConsider 
-                : autoRegData.TypesToConsider.Where(autoRegData.TypeFilter)))
+            foreach (var classType in autoRegData.TypeFilter == null
+                ? autoRegData.TypesToConsider
+                : autoRegData.TypesToConsider.Where(autoRegData.TypeFilter))
             {
                 var interfaces = classType.GetTypeInfo().ImplementedInterfaces;
                 foreach (var infc in interfaces.Where(i => i != typeof(IDisposable) && i.IsPublic && !i.IsNested))
@@ -76,9 +77,9 @@ namespace Devon4Net.Infrastructure.Common.Helpers
         public static IServiceCollection AsSingletonPublicImplementedClasses(this AutoRegisterData autoRegData)
         {
             if (autoRegData == null) throw new ArgumentNullException(nameof(autoRegData));
-            foreach (var classType in (autoRegData.TypeFilter == null
+            foreach (var classType in autoRegData.TypeFilter == null
                 ? autoRegData.TypesToConsider
-                : autoRegData.TypesToConsider.Where(autoRegData.TypeFilter)))
+                : autoRegData.TypesToConsider.Where(autoRegData.TypeFilter))
             {
                 autoRegData.Services.AddSingleton(classType);
             }
@@ -88,7 +89,7 @@ namespace Devon4Net.Infrastructure.Common.Helpers
 
         public static void AutoRegisterClasses(this IServiceCollection services, List<Type> assemblyContainerToScan, string sufixName = "Service")
         {
-            if (assemblyContainerToScan == null || assemblyContainerToScan.Count == 0|| string.IsNullOrEmpty(sufixName)) return;
+            if (assemblyContainerToScan == null || assemblyContainerToScan.Count == 0 || string.IsNullOrEmpty(sufixName)) return;
 
             foreach (var assembly in assemblyContainerToScan)
             {

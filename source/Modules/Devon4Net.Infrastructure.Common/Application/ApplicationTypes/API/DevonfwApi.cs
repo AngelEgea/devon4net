@@ -1,16 +1,14 @@
-﻿using Devon4Net.Infrastructure.Common.Handlers;
+﻿using Devon4Net.Infrastructure.Common.Application.ApplicationTypes.API.Configuration;
+using Devon4Net.Infrastructure.Common.Application.ApplicationTypes.API.Servers;
+using Devon4Net.Infrastructure.Common.Application.Attributes;
+using Devon4Net.Infrastructure.Common.Application.Options;
+using Devon4Net.Infrastructure.Common.Configuration;
+using Devon4Net.Infrastructure.Common.Constants;
+using Devon4Net.Infrastructure.Common.Handlers;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Serilog;
-using FluentValidation.AspNetCore;
-using Devon4Net.Infrastructure.Common.Constants;
-using Devon4Net.Infrastructure.Common.Configuration;
-using Devon4Net.Infrastructure.Common.Application.Options;
-using Devon4Net.Infrastructure.Common.Application.ApplicationTypes.API.Servers;
-using Devon4Net.Infrastructure.Common.Application.ApplicationTypes.API.Configuration;
-using Devon4Net.Infrastructure.Common.Application.Attributes;
 
 namespace Devon4Net.Infrastructure.Common.Application.ApplicationTypes.API
 {
@@ -18,7 +16,7 @@ namespace Devon4Net.Infrastructure.Common.Application.ApplicationTypes.API
     {
         private static readonly DevonfwConfigurationBuilder DevonfwConfigurationBuilder = new();
         private static DevonfwOptions DevonfwOptions { get; set; }
-        public static void InitializeDevonfwApi(this IWebHostBuilder builder, IHostBuilder hostBuilder)
+        public static void InitializeDevonfwApi(this IWebHostBuilder builder)
         {
             var useDetailedErrorsKey = DevonfwConfigurationBuilder.Configuration[$"{OptionsDefinition.DefaultSettingsNodeName}:UseDetailedErrorsKey"];
             builder.UseSetting(WebHostDefaults.DetailedErrorsKey, useDetailedErrorsKey);

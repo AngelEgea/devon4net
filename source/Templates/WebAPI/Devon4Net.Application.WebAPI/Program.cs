@@ -16,7 +16,7 @@ using Devon4Net.Infrastructure.MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.InitializeDevonfwApi(builder.Host);
+builder.WebHost.InitializeDevonfwApi();
 builder.Services.AddControllers();
 
 #region devon services

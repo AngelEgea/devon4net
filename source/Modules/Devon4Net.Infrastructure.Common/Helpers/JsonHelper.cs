@@ -1,13 +1,12 @@
-﻿using System.Text;
+﻿using Devon4Net.Infrastructure.Common.Helpers.Interfaces;
 using System.Text.Json;
-using Devon4Net.Infrastructure.Common.Helpers.Interfaces;
 
 namespace Devon4Net.Infrastructure.Common.Helpers
 {
     public class JsonHelper : IJsonHelper
     {
         private const string BuiltInTypes = "String, DateTime, DateTimeKind, DateTimeOffset, AsyncCallback, AttributeTargets, AttributeUsageAttribute, Boolean, Byte, Char, CharEnumerator, Base64FormattingOptions, DayOfWeek, DBNull, Decimal, Double, EnvironmentVariableTarget, EventHandler, GCCollectionMode, Guid, Int16, Int32, Int64, IntPtr, SByte, Single, TimeSpan, TimeZoneInfo, TypeCode, UInt16, UInt32, UInt64, UIntPtr";
-        private readonly JsonSerializerOptions CamelJsonSerializerOptions = new () { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull };
+        private readonly JsonSerializerOptions CamelJsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull };
 
         private JsonSerializerOptions JsonSerializerOptions { get; }
 
@@ -21,7 +20,7 @@ namespace Devon4Net.Infrastructure.Common.Helpers
             JsonSerializerOptions = jsonSerializerOptions;
         }
 
-        public T Deserialize<T>(string input, bool useCamelCase= false)
+        public T Deserialize<T>(string input, bool useCamelCase = false)
         {
             if (string.IsNullOrEmpty(input))
             {
@@ -40,7 +39,7 @@ namespace Devon4Net.Infrastructure.Common.Helpers
         {
             if (input == null || input.Count == 0)
             {
-                return default;
+                return Enumerable.Empty<T>().ToList();
             }
 
             var result = new List<T>();
@@ -56,7 +55,7 @@ namespace Devon4Net.Infrastructure.Common.Helpers
         public async Task<string> Serialize<T>(T input)
         {
             var stream = new MemoryStream();
-            await JsonSerializer.SerializeAsync<T>(stream, input, JsonSerializerOptions).ConfigureAwait(false);
+            await JsonSerializer.SerializeAsync(stream, input, JsonSerializerOptions).ConfigureAwait(false);
 
             stream.Position = 0;
             using var reader = new StreamReader(stream);

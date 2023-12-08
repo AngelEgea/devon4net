@@ -7,7 +7,7 @@ using Devon4Net.Infrastructure.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.InitializeDevonfwApi(builder.Host);
+builder.WebHost.InitializeDevonfwApi();
 
 #region services
 builder.Services.AddControllers();
