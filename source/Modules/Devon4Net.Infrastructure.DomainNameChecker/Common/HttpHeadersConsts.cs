@@ -1,4 +1,4 @@
-﻿namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.Common
+﻿namespace Devon4Net.Infrastructure.DomainNameChecker.Common
 {
     public static class HttpHeadersConsts
     {

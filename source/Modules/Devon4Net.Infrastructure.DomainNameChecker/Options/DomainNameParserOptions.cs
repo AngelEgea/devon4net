@@ -1,4 +1,4 @@
-﻿namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.Options
+﻿namespace Devon4Net.Infrastructure.DomainNameChecker.Options
 {
     public class DomainNameParserOptions
     {

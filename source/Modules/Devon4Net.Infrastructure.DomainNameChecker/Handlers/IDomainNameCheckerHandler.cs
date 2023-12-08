@@ -1,6 +1,6 @@
-﻿using ADC.PostNL.BuildingBlocks.DomainNameChecker.Common;
+﻿using Devon4Net.Infrastructure.DomainNameChecker.Common.DomainParser;
 
-namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.Handlers
+namespace Devon4Net.Infrastructure.DomainNameChecker.Handlers
 {
     public interface IDomainNameCheckerHandler
     {

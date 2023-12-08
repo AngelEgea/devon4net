@@ -1,14 +1,14 @@
-﻿using ADC.PostNL.BuildingBlocks.Common;
-using ADC.PostNL.BuildingBlocks.Common.IO;
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.Common;
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.Common.AVCheck;
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.Options;
+﻿using Devon4Net.Infrastructure.Common;
+using Devon4Net.Infrastructure.Common.IO;
+using Devon4Net.Infrastructure.DomainNameChecker.Common.AVCheck;
+using Devon4Net.Infrastructure.DomainNameChecker.Common.DomainParser;
+using Devon4Net.Infrastructure.DomainNameChecker.Options;
 using Microsoft.Extensions.Options;
 using nClam;
 using System.Collections.ObjectModel;
 using System.Net.Sockets;
 
-namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.ClamAVParser
+namespace Devon4Net.Infrastructure.DomainNameChecker.ClamAVParser
 {
     public class ClamAVParserService : IAVChecker
     {
@@ -53,13 +53,13 @@ namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.ClamAVParser
             }
             catch (SocketException ex)
             {
-                PostNLLogger.Error(ClamAVNotFound);
-                PostNLLogger.Error(ex);
+                Devon4NetLogger.Error(ClamAVNotFound);
+                Devon4NetLogger.Error(ex);
                 throw;
             }
             catch (Exception ex)
             {
-                PostNLLogger.Error(ex);
+                Devon4NetLogger.Error(ex);
                 throw;
             }
         }
@@ -80,13 +80,13 @@ namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.ClamAVParser
             }
             catch (SocketException ex)
             {
-                PostNLLogger.Error(ClamAVNotFound);
-                PostNLLogger.Error(ex);
+                Devon4NetLogger.Error(ClamAVNotFound);
+                Devon4NetLogger.Error(ex);
                 throw;
             }
             catch (Exception ex)
             {
-                PostNLLogger.Error(ex);
+                Devon4NetLogger.Error(ex);
                 throw;
             }
         }
@@ -111,13 +111,13 @@ namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.ClamAVParser
             }
             catch (SocketException ex)
             {
-                PostNLLogger.Error(ClamAVNotFound);
-                PostNLLogger.Error(ex);
+                Devon4NetLogger.Error(ClamAVNotFound);
+                Devon4NetLogger.Error(ex);
                 throw;
             }
             catch (Exception ex)
             {
-                PostNLLogger.Error(ex);
+                Devon4NetLogger.Error(ex);
                 throw;
             }
         }

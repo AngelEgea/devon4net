@@ -1,4 +1,4 @@
-﻿namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.Common.AVCheck
+﻿namespace Devon4Net.Infrastructure.DomainNameChecker.Common.AVCheck
 {
     public class AvResult
     {

@@ -1,8 +1,8 @@
-﻿using ADC.PostNL.BuildingBlocks.DomainNameChecker.Common.AVCheck;
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.DomainParser;
+﻿using Devon4Net.Infrastructure.DomainNameChecker.Common.AVCheck;
+using Devon4Net.Infrastructure.DomainNameChecker.DomainParser;
 using System.Net;
 
-namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.Common
+namespace Devon4Net.Infrastructure.DomainNameChecker.Common.DomainParser
 {
     public class DomainNameCheckerAnalysis
     {

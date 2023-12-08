@@ -1,12 +1,12 @@
-﻿using ADC.PostNL.BuildingBlocks.Common;
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.Common;
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.Common.AVCheck;
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.DomainParser;
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.Options;
+﻿using Devon4Net.Infrastructure.Common;
+using Devon4Net.Infrastructure.DomainNameChecker.Common.AVCheck;
+using Devon4Net.Infrastructure.DomainNameChecker.Common.DomainParser;
+using Devon4Net.Infrastructure.DomainNameChecker.DomainParser;
+using Devon4Net.Infrastructure.DomainNameChecker.Options;
 using Microsoft.Extensions.Options;
 using System.Net;
 
-namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.Handlers
+namespace Devon4Net.Infrastructure.DomainNameChecker.Handlers
 {
     public class DomainNameCheckerHandler : IDomainNameCheckerHandler
     {
@@ -134,18 +134,18 @@ namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.Handlers
             }
             catch (HttpRequestException ex)
             {
-                PostNLLogger.Error(ex);
+                Devon4NetLogger.Error(ex);
                 result.HttpStatusCode = default;
 
                 return result;
             }
             catch (TaskCanceledException ex)
             {
-                PostNLLogger.Error(ex);
+                Devon4NetLogger.Error(ex);
                 if (cts.Token.IsCancellationRequested)
                 {
                     // Timed Out
-                    result.HttpStatusCode = System.Net.HttpStatusCode.RequestTimeout;
+                    result.HttpStatusCode = HttpStatusCode.RequestTimeout;
 
                     return result;
                 }
@@ -154,7 +154,7 @@ namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.Handlers
             }
             catch (Exception ex)
             {
-                PostNLLogger.Error(ex);
+                Devon4NetLogger.Error(ex);
                 throw;
             }
             finally
@@ -166,7 +166,7 @@ namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.Handlers
         private static bool CheckDomain(string urlDomain)
         {
             return Uri.TryCreate(urlDomain, UriKind.Absolute, out Uri uriResult)
-                && (uriResult.Scheme == Uri.UriSchemeHttps);
+                && uriResult.Scheme == Uri.UriSchemeHttps;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.DomainParser.Enum
+﻿namespace Devon4Net.Infrastructure.DomainNameChecker.DomainParser.Enum
 {
     public enum TldRuleLoad
     {

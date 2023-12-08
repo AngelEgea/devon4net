@@ -22,8 +22,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\ADC.PostNL.BuildingBlocks.Cors\ADC.PostNL.BuildingBlocks.Cors.csproj" />
-		<ProjectReference Include="..\ADC.PostNL.BuildingBlocks.Logger\ADC.PostNL.BuildingBlocks.Logger.csproj" />
+		<ProjectReference Include="..\Devon4Net.Infrastructure.Cors\Devon4Net.Infrastructure.Cors.csproj" />
+		<ProjectReference Include="..\Devon4Net.Infrastructure.Logger\Devon4Net.Infrastructure.Logger.csproj" />
 	</ItemGroup>
 
 </Project>

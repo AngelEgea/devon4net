@@ -1,10 +1,10 @@
-﻿using ADC.PostNL.BuildingBlocks.Common.Handlers;
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.DomainParser;
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.Options;
+﻿using Devon4Net.Infrastructure.Common.Handlers;
+using Devon4Net.Infrastructure.DomainNameChecker.DomainParser;
+using Devon4Net.Infrastructure.DomainNameChecker.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ADC.PostNL.BuildingBlocks.DomainNameChecker
+namespace Devon4Net.Infrastructure.DomainNameChecker
 {
     public static class DomainNameParserConfiguration
     {

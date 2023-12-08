@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.Common
+namespace Devon4Net.Infrastructure.DomainNameChecker.Common.DomainParser
 {
     public class HttpClientCreator : IDisposable
     {
@@ -50,9 +50,9 @@ namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.Common
 
         protected virtual void Dispose(bool disposing)
         {
-            if(!_disposed)
+            if (!_disposed)
             {
-                if(disposing)
+                if (disposing)
                 {
                     HttpClient.Dispose();
                 }

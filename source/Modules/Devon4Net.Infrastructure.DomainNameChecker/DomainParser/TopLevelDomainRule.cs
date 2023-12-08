@@ -1,6 +1,6 @@
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.DomainParser.Enum;
+using Devon4Net.Infrastructure.DomainNameChecker.DomainParser.Enum;
 
-namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.DomainParser
+namespace Devon4Net.Infrastructure.DomainNameChecker.DomainParser
 {
     /// <summary>
     /// Meta information class for an individual TLD rule

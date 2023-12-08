@@ -1,4 +1,4 @@
-﻿namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.DomainParser
+﻿namespace Devon4Net.Infrastructure.DomainNameChecker.DomainParser
 {
     public class AdvancedDomainInfo
     {

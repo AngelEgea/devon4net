@@ -1,10 +1,10 @@
-﻿using ADC.PostNL.BuildingBlocks.Common;
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.DomainParser.Enum;
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.Options;
+﻿using Devon4Net.Infrastructure.Common;
+using Devon4Net.Infrastructure.DomainNameChecker.DomainParser.Enum;
+using Devon4Net.Infrastructure.DomainNameChecker.Options;
 using System.Data;
 using System.Text.RegularExpressions;
 
-namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.DomainParser
+namespace Devon4Net.Infrastructure.DomainNameChecker.DomainParser
 {
     public class DomainNameParser
     {
@@ -134,7 +134,7 @@ namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.DomainParser
             }
             catch (Exception ex)
             {
-                PostNLLogger.Error(ex);
+                Devon4NetLogger.Error(ex);
                 return new AdvancedDomainInfo { IsValid = false };
             }
         }
@@ -150,7 +150,7 @@ namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.DomainParser
             //  Split our domain into parts (based on the '.')
             //  Put these parts in a list
             //  Make sure these parts are in reverse order (we'll be checking rules from the right-most pat of the domain)
-            List<string> lstDomainParts = domainString.Split('.').ToList<string>();
+            List<string> lstDomainParts = domainString.Split('.').ToList();
             lstDomainParts.Reverse();
 
             //  Begin building our partial domain to check rules with:
@@ -178,7 +178,7 @@ namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.DomainParser
                         ruleMatches.Add(result);
                     }
                     var matched = result == null ? 0 : 1;
-                    PostNLLogger.Information($"Domain part {checkAgainst} matched {matched} {rule} rules");
+                    Devon4NetLogger.Information($"Domain part {checkAgainst} matched {matched} {rule} rules");
                 }
             }
 
@@ -192,11 +192,11 @@ namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.DomainParser
 
             if (primaryMatch != null)
             {
-                PostNLLogger.Information($"Looks like our match is: {primaryMatch.Name}, which is a(n) {primaryMatch.Type} rule.");
+                Devon4NetLogger.Information($"Looks like our match is: {primaryMatch.Name}, which is a(n) {primaryMatch.Type} rule.");
             }
             else
             {
-                PostNLLogger.Information($"No rules matched domain: {domainString}");
+                Devon4NetLogger.Information($"No rules matched domain: {domainString}");
             }
 
             return primaryMatch;

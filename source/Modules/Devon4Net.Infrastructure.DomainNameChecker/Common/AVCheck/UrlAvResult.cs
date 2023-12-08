@@ -1,7 +1,6 @@
-﻿using ADC.PostNL.BuildingBlocks.DomainNameChecker.Common.AVCheck;
-using System.Net;
+﻿using System.Net;
 
-namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.Common
+namespace Devon4Net.Infrastructure.DomainNameChecker.Common.AVCheck
 {
     public class UrlAvResult
     {

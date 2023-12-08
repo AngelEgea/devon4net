@@ -1,12 +1,12 @@
-﻿using ADC.PostNL.BuildingBlocks.Common.Handlers;
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.ClamAVParser;
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.Common.AVCheck;
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.Options;
+﻿using Devon4Net.Infrastructure.Common.Handlers;
+using Devon4Net.Infrastructure.DomainNameChecker.ClamAVParser;
+using Devon4Net.Infrastructure.DomainNameChecker.Common.AVCheck;
+using Devon4Net.Infrastructure.DomainNameChecker.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using nClam;
 
-namespace ADC.PostNL.BuildingBlocks.DomainNameChecker
+namespace Devon4Net.Infrastructure.DomainNameChecker
 {
     public static class ClamAVConfiguration
     {

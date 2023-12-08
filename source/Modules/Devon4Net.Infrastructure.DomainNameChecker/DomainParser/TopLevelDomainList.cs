@@ -1,12 +1,12 @@
-﻿using ADC.PostNL.BuildingBlocks.Common;
-using ADC.PostNL.BuildingBlocks.Common.IO;
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.Common;
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.DomainParser.Enum;
-using ADC.PostNL.BuildingBlocks.DomainNameChecker.Options;
+﻿using Devon4Net.Infrastructure.Common;
+using Devon4Net.Infrastructure.Common.IO;
+using Devon4Net.Infrastructure.DomainNameChecker.Common.DomainParser;
+using Devon4Net.Infrastructure.DomainNameChecker.DomainParser.Enum;
+using Devon4Net.Infrastructure.DomainNameChecker.Options;
 using System.Reflection;
 using System.Text;
 
-namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.DomainParser
+namespace Devon4Net.Infrastructure.DomainNameChecker.DomainParser
 {
     public class TopLevelDomainList
     {
@@ -192,7 +192,7 @@ namespace ADC.PostNL.BuildingBlocks.DomainNameChecker.DomainParser
                 var result = new TopLevelDomainRule(ruleString);
                 TopLevelDomainRules[result.Type][result.Name] = result;
             }
-            PostNLLogger.Information($"Loaded {TopLevelDomainRules.Values.Sum(r => r.Values.Count)} rules into cache.");
+            Devon4NetLogger.Information($"Loaded {TopLevelDomainRules.Values.Sum(r => r.Values.Count)} rules into cache.");
         }
     }
 }
