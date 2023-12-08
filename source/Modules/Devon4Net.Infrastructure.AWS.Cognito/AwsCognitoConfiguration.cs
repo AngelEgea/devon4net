@@ -1,7 +1,7 @@
-﻿using ADC.PostNL.BuildingBlocks.AWS.Cognito.Handler;
+﻿using Devon4Net.Infrastructure.AWS.Cognito.Handler;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ADC.PostNL.BuildingBlocks.AWS.Cognito
+namespace Devon4Net.Infrastructure.AWS.Cognito
 {
     public static class AwsCognitoConfiguration
     {

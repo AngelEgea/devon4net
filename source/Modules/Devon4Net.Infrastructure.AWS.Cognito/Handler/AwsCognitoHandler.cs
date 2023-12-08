@@ -1,11 +1,11 @@
-﻿using ADC.PostNL.BuildingBlocks.Common;
-using Amazon;
+﻿using Amazon;
 using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
 using Amazon.Extensions.CognitoAuthentication;
 using Amazon.Runtime;
+using Devon4Net.Infrastructure.Common;
 
-namespace ADC.PostNL.BuildingBlocks.AWS.Cognito.Handler
+namespace Devon4Net.Infrastructure.AWS.Cognito.Handler
 {
     public class AwsCognitoHandler : IAwsCognitoHandler
     {
@@ -102,7 +102,7 @@ namespace ADC.PostNL.BuildingBlocks.AWS.Cognito.Handler
             }
             catch (ResourceNotFoundException ex)
             {
-                PostNLLogger.Warning($"AppClient not found from AwsCognitoHandler. Message: {ex.Message}");
+                Devon4NetLogger.Warning($"AppClient not found from AwsCognitoHandler. Message: {ex.Message}");
                 return null;
             }
         }
@@ -160,7 +160,7 @@ namespace ADC.PostNL.BuildingBlocks.AWS.Cognito.Handler
             }
             catch (UserNotFoundException ex)
             {
-                PostNLLogger.Warning($"User not found from AwsCognitoHandler. Message: {ex.Message}");
+                Devon4NetLogger.Warning($"User not found from AwsCognitoHandler. Message: {ex.Message}");
                 return Task.FromResult<AdminGetUserResponse>(null);
             }
         }

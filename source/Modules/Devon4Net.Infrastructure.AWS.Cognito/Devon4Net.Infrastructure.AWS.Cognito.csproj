@@ -8,7 +8,7 @@
 	<ItemGroup>
 		<PackageReference Include="AWSSDK.CognitoIdentityProvider" Version="3.7.2.24" />
 		<PackageReference Include="Amazon.Extensions.CognitoAuthentication" Version="2.2.2" />
-		<ProjectReference Include="..\ADC.PostNL.BuildingBlocks.Common\ADC.PostNL.BuildingBlocks.Common.csproj" />
+		<ProjectReference Include="..\Devon4Net.Infrastructure.Common\Devon4Net.Infrastructure.Common.csproj" />
 	</ItemGroup>
 
 </Project>

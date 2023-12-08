@@ -1,7 +1,7 @@
 ﻿using Amazon.CognitoIdentityProvider.Model;
 using Amazon.Extensions.CognitoAuthentication;
 
-namespace ADC.PostNL.BuildingBlocks.AWS.Cognito.Handler
+namespace Devon4Net.Infrastructure.AWS.Cognito.Handler
 {
     public interface IAwsCognitoHandler : IDisposable
     {
