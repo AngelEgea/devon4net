@@ -1,11 +1,11 @@
-﻿using ADC.PostNL.BuildingBlocks.Common;
-using Amazon;
+﻿using Amazon;
 using Amazon.Runtime;
 using Amazon.SimpleEmailV2;
 using Amazon.SimpleEmailV2.Model;
+using Devon4Net.Infrastructure.Common;
 using System.Net;
 
-namespace ADC.PostNL.BuildingBlocks.AWS.SES.Handler
+namespace Devon4Net.Infrastructure.AWS.SES.Handler
 {
     public class AwsSesHandler : IAwsSesHandler
     {
@@ -68,8 +68,8 @@ namespace ADC.PostNL.BuildingBlocks.AWS.SES.Handler
             }
             catch (Exception ex)
             {
-                PostNLLogger.Fatal("An error ocurred while sending email. Email was not sent");
-                PostNLLogger.Fatal(ex);
+                Devon4NetLogger.Fatal("An error ocurred while sending email. Email was not sent");
+                Devon4NetLogger.Fatal(ex);
                 throw;
             }
         }

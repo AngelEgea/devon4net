@@ -1,7 +1,7 @@
-﻿using ADC.PostNL.BuildingBlocks.AWS.SES.Handler;
+﻿using Devon4Net.Infrastructure.AWS.SES.Handler;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ADC.PostNL.BuildingBlocks.AWS.SES
+namespace Devon4Net.Infrastructure.AWS.SES
 {
     public static class AwsSesConfiguration
     {

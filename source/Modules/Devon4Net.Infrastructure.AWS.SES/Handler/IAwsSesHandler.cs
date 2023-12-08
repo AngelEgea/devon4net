@@ -1,4 +1,4 @@
-﻿namespace ADC.PostNL.BuildingBlocks.AWS.SES.Handler
+﻿namespace Devon4Net.Infrastructure.AWS.SES.Handler
 {
     public interface IAwsSesHandler : IDisposable
     {
