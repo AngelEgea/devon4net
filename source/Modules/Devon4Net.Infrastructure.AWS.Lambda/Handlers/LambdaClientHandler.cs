@@ -1,9 +1,9 @@
-﻿using System.Text;
-using System.Text.Json;
-using Amazon;
+﻿using Amazon;
 using Amazon.Lambda;
 using Amazon.Lambda.Model;
 using Devon4Net.Infrastructure.Common.Helpers;
+using System.Text;
+using System.Text.Json;
 
 namespace Devon4Net.Infrastructure.AWS.Lambda.Handlers
 {
@@ -20,11 +20,11 @@ namespace Devon4Net.Infrastructure.AWS.Lambda.Handlers
             AwsSecretAccessKeyId = awsSecretAccessKeyId;
         }
 
-        public async Task<TOutput> Invoke<TInput,TOutput>(string functionName, TInput inputParam, InvocationType invocationType = null)
+        public async Task<TOutput> Invoke<TInput, TOutput>(string functionName, TInput inputParam, InvocationType invocationType = null)
         {
             var jsonHelper = new JsonHelper();
             var lambdaConfig = new AmazonLambdaConfig() { RegionEndpoint = RegionEndpoint.GetBySystemName(AwsRegion) };
-            var awsClient = new AmazonLambdaClient(AwsSecretAccessKeyId, AwsSecretAccessKey, lambdaConfig);
+            using var awsClient = new AmazonLambdaClient(AwsSecretAccessKeyId, AwsSecretAccessKey, lambdaConfig);
 
             var response = await awsClient.InvokeAsync(new InvokeRequest
             {

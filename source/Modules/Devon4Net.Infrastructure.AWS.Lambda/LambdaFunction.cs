@@ -1,22 +1,17 @@
 ﻿using Amazon.Lambda.Core;
 using Amazon.Runtime;
+using Devon4Net.Infrastructure.AWS.Common.Helpers;
 using Devon4Net.Infrastructure.AWS.Common.Managers.ParameterStoreManager;
 using Devon4Net.Infrastructure.AWS.Common.Managers.SecretsManager;
 using Devon4Net.Infrastructure.AWS.Common.Options;
 using Devon4Net.Infrastructure.AWS.Lambda.Interfaces;
-using Devon4Net.Infrastructure.AWS.SQS.Handlers;
-using Devon4Net.Infrastructure.AWS.SQS.Interfaces;
+using Devon4Net.Infrastructure.AWS.Logger;
+using Devon4Net.Infrastructure.Common;
+using Devon4Net.Infrastructure.Common.Configuration;
 using Devon4Net.Infrastructure.Common.Constants;
 using Devon4Net.Infrastructure.Common.Handlers;
-using Devon4Net.Infrastructure.Common;
 using Microsoft.Extensions.DependencyInjection;
-using Devon4Net.Infrastructure.AWS.Common.Helpers;
-using Devon4Net.Infrastructure.Common.Configuration;
-using Devon4Net.Infrastructure.AWS.Logger;
 
-#if Lambda
-[assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
-#endif
 namespace Devon4Net.Infrastructure.AWS.Lambda
 {
     public abstract class LambdaFunction<TInput, TOutput> where TInput : class
@@ -44,6 +39,7 @@ namespace Devon4Net.Infrastructure.AWS.Lambda
             FinalizeSetupServiceProviderActions();
         }
 
+        [LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
         public async Task<TOutput> FunctionHandler(TInput input, ILambdaContext context)
         {
             var scope = ServiceProvider.CreateScope();
@@ -117,11 +113,6 @@ namespace Devon4Net.Infrastructure.AWS.Lambda
             if (AwsOptions.UseParameterStore)
             {
                 DevonfwConfigurationBuilder.ConfigurationBuilder.AddParameterStoreHandler(AWSCredentials);
-            }
-
-            if (AwsOptions.UseSqs)
-            {
-                ServiceCollection.AddSingleton<ISqsClientHandler, SqsClientHandler>();
             }
 
             if (AwsOptions.UseParameterStore || AwsOptions.UseSecrets)
