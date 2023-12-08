@@ -1,41 +1,79 @@
 ﻿using Amazon;
+using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Devon4Net.Infrastructure.AWS.S3.Interfaces;
 using Devon4Net.Infrastructure.Common;
+using System.Net;
 
 namespace Devon4Net.Infrastructure.AWS.S3.Handlers
 {
     public class AwsS3Handler : IAwsS3Handler
     {
-        private string AwsRegion { get; }
-        private string AwsSecretAccessKeyId { get; }
-        private string AwsSecretAccessKey { get; }
+        private IAmazonS3 S3Client { get; init; }
+        private bool _disposed = false;
 
         public AwsS3Handler(string awsRegion, string awsSecretAccessKeyId, string awsSecretAccessKey)
         {
-            AwsRegion = awsRegion;
-            AwsSecretAccessKey = awsSecretAccessKey;
-            AwsSecretAccessKeyId = awsSecretAccessKeyId;
-        }
-        #region Async methods
-        public async Task<Stream> GetObject(string bucketName, string objectKey)
-        {
-            var request = new GetObjectRequest { BucketName = bucketName, Key = objectKey };
-            var s3Client = GetS3Client(AwsRegion, AwsSecretAccessKeyId, AwsSecretAccessKey);
-            var response = await s3Client.GetObjectAsync(request).ConfigureAwait(false);
-            return response.ResponseStream;
+            S3Client = GetS3Client(awsRegion, awsSecretAccessKeyId, awsSecretAccessKey);
         }
 
-        public async Task<bool> UploadObject(Stream streamFile, string keyName, string bucketName, string contentType, bool autoCloseStream = false, List<Tag> tagList = null)
+        public AwsS3Handler(AWSCredentials awsCredentials, RegionEndpoint awsRegion)
+        {
+            S3Client = new AmazonS3Client(awsCredentials, awsRegion);
+        }
+
+        public AwsS3Handler(IAmazonS3 amazonS3Client)
+        {
+            S3Client = amazonS3Client;
+        }
+
+        #region Async methods
+        public async Task<Stream> GetObject(string bucketName, string objectKey, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var request = new GetObjectRequest { BucketName = bucketName, Key = objectKey };
+                var response = await S3Client.GetObjectAsync(request, cancellationToken).ConfigureAwait(false);
+                return response.ResponseStream;
+            }
+            catch (AmazonS3Exception ex)
+            {
+                if (ex.StatusCode == HttpStatusCode.NotFound) return null;
+
+                Devon4NetLogger.Error($"File {objectKey} could not be retrieved from bucket {bucketName}.");
+                LogS3Exception(ex);
+
+                throw;
+            }
+        }
+
+        public async Task<GetObjectResponse> GetObjectWithMetadata(string bucketName, string objectKey, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var request = new GetObjectRequest { BucketName = bucketName, Key = objectKey };
+                return await S3Client.GetObjectAsync(request, cancellationToken).ConfigureAwait(false);
+            }
+            catch (AmazonS3Exception ex)
+            {
+                if (ex.StatusCode == HttpStatusCode.NotFound) return null;
+
+                Devon4NetLogger.Error($"File with metadata {objectKey} could not be retrieved from bucket {bucketName}.");
+                LogS3Exception(ex);
+
+                throw;
+            }
+        }
+
+        public async Task<bool> UploadObject(Stream streamFile, string keyName, string bucketName, string contentType, bool autoCloseStream = false, List<Tag> tagList = null, CancellationToken cancellationToken = default)
         {
             try
             {
                 CheckUploadObjectParams(streamFile, keyName, bucketName);
 
-                var s3Client = GetS3Client(AwsRegion, AwsSecretAccessKeyId, AwsSecretAccessKey);
-                var fileTransferUtility = new TransferUtility(s3Client);
+                var fileTransferUtility = new TransferUtility(S3Client);
 
                 var transferUtilityUploadRequest = new TransferUtilityUploadRequest
                 {
@@ -48,24 +86,25 @@ namespace Devon4Net.Infrastructure.AWS.S3.Handlers
                     TagSet = tagList ?? new List<Tag>()
                 };
 
-                await fileTransferUtility.UploadAsync(transferUtilityUploadRequest).ConfigureAwait(false);
+                await fileTransferUtility.UploadAsync(transferUtilityUploadRequest, cancellationToken).ConfigureAwait(false);
                 if (!autoCloseStream) streamFile.Position = 0;
             }
-            catch (Exception ex)
+            catch (AmazonS3Exception ex)
             {
-                Devon4NetLogger.Fatal(ex);
+                Devon4NetLogger.Error($"File {keyName} could not be updated to bucket {bucketName}.");
+                LogS3Exception(ex);
+
                 throw;
             }
 
             return true;
         }
 
-        public async Task<bool> UploadObjectWithMetadata(Stream streamFile, string keyName, string bucketName, string contentType, IDictionary<string, string> metadata, bool autoCloseStream = false)
+        public async Task<bool> UploadObjectWithMetadata(Stream streamFile, string keyName, string bucketName, string contentType, IDictionary<string, string> metadata, bool autoCloseStream = false, CancellationToken cancellationToken = default)
         {
             try
             {
                 CheckUploadObjectParams(streamFile, keyName, bucketName);
-                var s3Client = GetS3Client(AwsRegion, AwsSecretAccessKeyId, AwsSecretAccessKey);
 
                 var request = new PutObjectRequest
                 {
@@ -82,68 +121,74 @@ namespace Devon4Net.Infrastructure.AWS.S3.Handlers
                     request.Metadata.Add(key.Key, key.Value);
                 }
 
-                var upload = await s3Client.PutObjectAsync(request).ConfigureAwait(false);
+                var upload = await S3Client.PutObjectAsync(request, cancellationToken).ConfigureAwait(false);
                 if (!autoCloseStream) streamFile.Position = 0;
 
-                return upload.HttpStatusCode == System.Net.HttpStatusCode.OK;
+                return upload.HttpStatusCode == HttpStatusCode.OK;
             }
-            catch (Exception ex)
+            catch (AmazonS3Exception ex)
             {
-                Devon4NetLogger.Fatal(ex);
+                Devon4NetLogger.Error($"File {keyName} with metadata could not be updated to bucket {bucketName}.");
+                LogS3Exception(ex);
                 throw;
             }
         }
 
-        public async Task<GetObjectMetadataResponse> GetObjectMetadata(string key, string bucketName)
+        public async Task<GetObjectMetadataResponse> GetObjectMetadata(string key, string bucketName, CancellationToken cancellationToken = default)
         {
             try
             {
-                var s3Client = GetS3Client(AwsRegion, AwsSecretAccessKeyId, AwsSecretAccessKey);
-                return await s3Client.GetObjectMetadataAsync(new GetObjectMetadataRequest { Key = key, BucketName = bucketName }).ConfigureAwait(false);
+                return await S3Client.GetObjectMetadataAsync(new GetObjectMetadataRequest { Key = key, BucketName = bucketName }, cancellationToken).ConfigureAwait(false);
             }
             catch (AmazonS3Exception ex)
             {
-                if (ex.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
+                if (ex.StatusCode == HttpStatusCode.NotFound) return null;
+
+                Devon4NetLogger.Error($"File {key} metadata in bucket {bucketName} could not be retrieved.");
+                LogS3Exception(ex);
+
                 throw;
             }
         }
 
-        public async Task<bool> CheckObjectExists(string key, string bucketName)
+        public async Task<bool> CheckObjectExists(string key, string bucketName, CancellationToken cancellationToken = default)
         {
             try
             {
-                var s3Client = GetS3Client(AwsRegion, AwsSecretAccessKeyId, AwsSecretAccessKey);
-                var response = await s3Client.GetObjectMetadataAsync(new GetObjectMetadataRequest { Key = key, BucketName = bucketName }).ConfigureAwait(false);
-                if (response.HttpStatusCode == System.Net.HttpStatusCode.NotFound) return false;
-                return response.HttpStatusCode == System.Net.HttpStatusCode.OK && response.LastModified != DateTime.MinValue && response.LastModified != DateTime.MaxValue && response.LastModified != default;
+                var response = await S3Client.GetObjectMetadataAsync(new GetObjectMetadataRequest { Key = key, BucketName = bucketName }, cancellationToken).ConfigureAwait(false);
+                if (response.HttpStatusCode == HttpStatusCode.NotFound) return false;
+                return response.HttpStatusCode == HttpStatusCode.OK && response.LastModified != DateTime.MinValue && response.LastModified != DateTime.MaxValue && response.LastModified != default;
             }
             catch (AmazonS3Exception ex)
             {
-                if (ex.StatusCode == System.Net.HttpStatusCode.NotFound) return false;
+                if (ex.StatusCode == HttpStatusCode.NotFound) return false;
+
+                Devon4NetLogger.Error($"File {key} in bucket {bucketName} could not be found.");
+                LogS3Exception(ex);
+
                 throw;
             }
         }
-        public async Task<bool> DeleteFiles(string key, string bucketName)
+        public async Task<bool> DeleteFiles(string key, string bucketName, CancellationToken cancellationToken = default)
         {
-            var s3Client = GetS3Client(AwsRegion, AwsSecretAccessKeyId, AwsSecretAccessKey);
             try
             {
-                await s3Client.DeleteObjectAsync(bucketName, key).ConfigureAwait(false);
+                await S3Client.DeleteObjectAsync(bucketName, key, cancellationToken).ConfigureAwait(false);
                 return true;
             }
-            catch (Exception ex)
+            catch (AmazonS3Exception ex)
             {
-                Devon4NetLogger.Error(ex, $"File {key} could not be deleted.");
+                Devon4NetLogger.Error($"File {key} could not be deleted.");
+                LogS3Exception(ex);
                 return false;
             }
         }
 
-        public async Task<List<S3Object>> GetAllFiles(string bucketName, int maxKeys = 1000, string prefix = null)
+        public async Task<List<S3Object>> GetAllFiles(string bucketName, int maxKeys = 1000, string prefix = null, CancellationToken cancellationToken = default)
         {
             try
             {
                 var allObjects = new List<S3Object>();
-                var s3Client = GetS3Client(AwsRegion, AwsSecretAccessKeyId, AwsSecretAccessKey);
                 var listObjectsrequest = new ListObjectsV2Request()
                 {
                     BucketName = bucketName,
@@ -151,28 +196,65 @@ namespace Devon4Net.Infrastructure.AWS.S3.Handlers
                     MaxKeys = maxKeys,
                 };
 
-                var listofObjects = await s3Client.ListObjectsV2Async(listObjectsrequest).ConfigureAwait(false);
+                var listofObjects = await S3Client.ListObjectsV2Async(listObjectsrequest, cancellationToken).ConfigureAwait(false);
                 allObjects.AddRange(listofObjects.S3Objects);
                 while (listofObjects.IsTruncated)
                 {
                     listObjectsrequest.ContinuationToken = listofObjects.NextContinuationToken;
-                    listofObjects = await s3Client.ListObjectsV2Async(listObjectsrequest).ConfigureAwait(false);
+                    listofObjects = await S3Client.ListObjectsV2Async(listObjectsrequest, cancellationToken).ConfigureAwait(false);
                     allObjects.AddRange(listofObjects.S3Objects);
                 }
                 return allObjects;
             }
-            catch (Exception ex)
+            catch (AmazonS3Exception ex)
             {
-                Devon4NetLogger.Error(ex, $"Could not get files for {bucketName} bucket");
+                Devon4NetLogger.Error($"Could not get files for {bucketName} bucket");
+                LogS3Exception(ex);
                 throw;
             }
         }
 
-        public async Task CopyObject(string sourceBucket, string sourceKey, string destinationBucket, string destinationKey, Dictionary<string, string> newMetadata)
+        public async Task<Dictionary<string, string>> GetObjectTags(string bucketName, string key, CancellationToken cancellationToken = default)
+        {
+            var response = await S3Client.GetObjectTaggingAsync(new GetObjectTaggingRequest
+            {
+                BucketName = bucketName,
+                Key = key
+            }, cancellationToken).ConfigureAwait(false);
+
+            if (response?.HttpStatusCode != HttpStatusCode.OK)
+            {
+                return null;
+            }
+
+            return response.Tagging.ToDictionary(keySelector: x => x.Key, elementSelector: x => x.Value);
+        }
+
+        public async Task<bool> SetObjectTags(string key, string bucketName, Dictionary<string, string> tags, CancellationToken cancellationToken = default)
+        {
+            var tagList = tags.Select(x => new Tag
+            {
+                Key = x.Key,
+                Value = x.Value
+            }).ToList();
+
+            var response = await S3Client.PutObjectTaggingAsync(new PutObjectTaggingRequest
+            {
+                BucketName = bucketName,
+                Key = key,
+                Tagging = new Tagging
+                {
+                    TagSet = tagList
+                }
+            }, cancellationToken).ConfigureAwait(false);
+
+            return response?.HttpStatusCode == HttpStatusCode.OK;
+        }
+
+        public async Task CopyObject(string sourceBucket, string sourceKey, string destinationBucket, string destinationKey, Dictionary<string, string> newMetadata, CancellationToken cancellationToken = default)
         {
             try
             {
-                var s3Client = GetS3Client(AwsRegion, AwsSecretAccessKeyId, AwsSecretAccessKey);
                 var copyObjectRequest = new CopyObjectRequest
                 {
                     BucketKeyEnabled = true,
@@ -188,39 +270,47 @@ namespace Devon4Net.Infrastructure.AWS.S3.Handlers
                     copyObjectRequest.Metadata.Add(key.Key, key.Value);
                 }
 
-                await s3Client.CopyObjectAsync(copyObjectRequest).ConfigureAwait(false);
+                await S3Client.CopyObjectAsync(copyObjectRequest, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (AmazonS3Exception ex)
             {
-                Devon4NetLogger.Error(ex, $"Could not copy or update the desired object: {sourceKey}");
+                Devon4NetLogger.Error($"Could not copy or update the desired object: {sourceKey}");
+                LogS3Exception(ex);
                 throw;
             }
         }
 
-        public Task<List<string>> GetDirectoriesNameFromBucket(string bucketName, List<string> foldersInBucket)
+        public Task<List<string>> GetDirectoriesNameFromBucket(string bucketName, List<string> foldersInBucket, CancellationToken cancellationToken = default)
         {
-            var s3Client = GetS3Client(AwsRegion, AwsSecretAccessKeyId, AwsSecretAccessKey);
             var listObjectsrequest = new ListObjectsV2Request()
             {
                 BucketName = bucketName,
                 Delimiter = "/" //This is only to get the folder
             };
 
-            return CreateListOfDirectories(bucketName, foldersInBucket, s3Client, listObjectsrequest);
+            return CreateListOfDirectories(bucketName, foldersInBucket, S3Client, listObjectsrequest, cancellationToken);
         }
 
-        public async Task<string> GetDirectoryNameFromBucket(string bucketName, string prefix)
+        public async Task<string> GetDirectoryNameFromBucket(string bucketName, string prefix, CancellationToken cancellationToken = default)
         {
-            var s3Client = GetS3Client(AwsRegion, AwsSecretAccessKeyId, AwsSecretAccessKey);
-            var listObjectsrequest = new ListObjectsV2Request()
+            try
             {
-                BucketName = bucketName,
-                Prefix = prefix,
-                Delimiter = "/" //This is only to get the folder
-            };
+                var listObjectsrequest = new ListObjectsV2Request()
+                {
+                    BucketName = bucketName,
+                    Prefix = prefix,
+                    Delimiter = "/" //This is only to get the folder
+                };
 
-            var listofObjects = await s3Client.ListObjectsV2Async(listObjectsrequest).ConfigureAwait(false);
-            return listofObjects.CommonPrefixes.FirstOrDefault();
+                var listofObjects = await S3Client.ListObjectsV2Async(listObjectsrequest, cancellationToken).ConfigureAwait(false);
+                return listofObjects.CommonPrefixes.FirstOrDefault();
+            }
+            catch (AmazonS3Exception ex)
+            {
+                Devon4NetLogger.Error($"Could not get the directory name from bucket {bucketName} using prefix {prefix}");
+                LogS3Exception(ex);
+                throw;
+            }
         }
 
         #endregion
@@ -229,6 +319,11 @@ namespace Devon4Net.Infrastructure.AWS.S3.Handlers
         public Stream GetObjectSync(string bucketName, string objectKey)
         {
             return GetObject(bucketName, objectKey).GetAwaiter().GetResult();
+        }
+
+        public GetObjectResponse GetObjectWithMetadataSync(string bucketName, string objectKey, CancellationToken cancellationToken = default)
+        {
+            return GetObjectWithMetadata(bucketName, objectKey, cancellationToken).GetAwaiter().GetResult();
         }
 
         public bool UploadObjectSync(Stream streamFile, string keyName, string bucketName, string contentType, bool autoCloseStream = false, List<Tag> tagList = null)
@@ -278,6 +373,13 @@ namespace Devon4Net.Infrastructure.AWS.S3.Handlers
 
         #endregion
         #region Private methods
+        private static void LogS3Exception(Exception exception)
+        {
+            var message = exception?.Message;
+            var innerException = exception?.InnerException;
+            Devon4NetLogger.Error($"Error performing the S3 action:{message} {innerException}");
+        }
+
         private static void CheckUploadObjectParams(Stream streamFile, string keyName, string bucketName)
         {
             if (streamFile == null || streamFile.Length == 0 || !streamFile.CanRead)
@@ -324,20 +426,42 @@ namespace Devon4Net.Infrastructure.AWS.S3.Handlers
             return new AmazonS3Client(awsSecretAccessKeyId, awsSecretAccessKey, region);
         }
 
-        private async Task<List<string>> CreateListOfDirectories(string bucketName, List<string> foldersInBucket, IAmazonS3 s3Client, ListObjectsV2Request listObjectsrequest)
+        private async Task<List<string>> CreateListOfDirectories(string bucketName, List<string> foldersInBucket, IAmazonS3 S3Client, ListObjectsV2Request listObjectsrequest, CancellationToken cancellationToken = default)
         {
-            var listofObjects = await s3Client.ListObjectsV2Async(listObjectsrequest).ConfigureAwait(false);
+            var listofObjects = await S3Client.ListObjectsV2Async(listObjectsrequest, cancellationToken).ConfigureAwait(false);
             foldersInBucket.AddRange(listofObjects.CommonPrefixes);
             if (listofObjects.CommonPrefixes.Count != 0)
             {
                 foreach (var prefix in listofObjects.CommonPrefixes)
                 {
                     listObjectsrequest.Prefix = prefix;
-                    await CreateListOfDirectories(bucketName, foldersInBucket, s3Client, listObjectsrequest);
+                    await CreateListOfDirectories(bucketName, foldersInBucket, S3Client, listObjectsrequest, cancellationToken);
                 }
             }
 
             return foldersInBucket;
+        }
+        #endregion
+        #region Dispose
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                S3Client?.Dispose();
+            }
+
+            _disposed = true;
         }
         #endregion
     }
