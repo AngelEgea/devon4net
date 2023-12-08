@@ -55,7 +55,8 @@ namespace Devon4Net.Infrastructure.AWS.Common.Managers.ParameterStoreManager.Han
                     Name = parameterName,
                     WithDecryption = true
                 }, cancellationToken).ConfigureAwait(false);
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 throw new ParameterNotFoundException($"The AWS parameter {parameterName} could not be retrieved from the Parameters Store, message: {ex.Message}", ex);
             }
@@ -67,6 +68,42 @@ namespace Devon4Net.Infrastructure.AWS.Common.Managers.ParameterStoreManager.Han
             }
 
             return getParameterResponse.Parameter.Value;
+        }
+
+        public async Task<Dictionary<string, string>> GetAllParametersAndValuesByPath(string path = "/", CancellationToken cancellationToken = default)
+        {
+            var result = new Dictionary<string, string>();
+            string nextToken = null;
+
+            try
+            {
+                do
+                {
+                    var getParametersByPathResponse = await _amazonSimpleSystemsManagementClient.GetParametersByPathAsync(new GetParametersByPathRequest
+                    {
+                        NextToken = nextToken,
+                        Path = path,
+                        Recursive = true,
+                        WithDecryption = true
+                    }, cancellationToken).ConfigureAwait(false);
+
+                    var statusCode = (int)getParametersByPathResponse.HttpStatusCode;
+                    if (statusCode < 200 || statusCode > 299)
+                    {
+                        throw new ParameterNotFoundException($"The AWS parameters could not be retrieved from the Parameters Store, error status code: {statusCode}");
+                    }
+
+                    getParametersByPathResponse.Parameters.ForEach(x => result.Add(x.Name, x.Value));
+                    nextToken = getParametersByPathResponse.NextToken;
+
+                } while (!string.IsNullOrWhiteSpace(nextToken));
+            }
+            catch (Exception ex)
+            {
+                throw new ParameterNotFoundException($"The AWS parameters could not be retrieved from the Parameters Store, message: {ex.Message}", ex);
+            }
+
+            return result;
         }
 
         public void Dispose()

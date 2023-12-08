@@ -10,11 +10,18 @@
         public int DelaySeconds { get; set; }
         public int ReceiveMessageWaitTimeSeconds { get; set; }
         public RedrivePolicyOptions RedrivePolicy { get; set; }
+        public QueueCredentials QueueCredentials { get; set; }
     }
 
     public class RedrivePolicyOptions
     {
         public int MaxReceiveCount { get; set; }
         public string DeadLetterQueueUrl { get; set; }
+    }
+
+    public class QueueCredentials
+    {
+        public string AccessKeyId { get; set; }
+        public string SecretAccessKey { get; set; }
     }
 }

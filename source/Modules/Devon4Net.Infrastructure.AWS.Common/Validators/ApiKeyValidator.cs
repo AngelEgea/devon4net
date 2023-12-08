@@ -1,20 +1,20 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Devon4Net.Infrastructure.AWS.Common.Options;
+using Microsoft.Extensions.Options;
 
 namespace Devon4Net.Infrastructure.AWS.Common.Validators
 {
     public class ApiKeyValidator : IApiKeyValidator
     {
-        private readonly IConfiguration _configuration;
+        private readonly ApiKeysOptions _apiKeyOptions;
 
-        public ApiKeyValidator(IConfiguration configuration)
+        public ApiKeyValidator(IOptions<ApiKeysOptions> apiKeyOptions)
         {
-            _configuration = configuration;
+            _apiKeyOptions = apiKeyOptions.Value;
         }
 
         public bool ValidateApiToken(string apiToken)
         {
-            var apiKeysList = _configuration.GetSection("ApiKeys").Value;
-            return apiKeysList.Contains($"\"{apiToken}\"");
+            return _apiKeyOptions?.ApiKeys?.Contains(apiToken) == true;
         }
     }
 }

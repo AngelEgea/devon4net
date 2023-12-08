@@ -8,6 +8,8 @@
         public bool UseParameterStore { get; set; }
         public bool UseSqs { get; set; }
         public List<SqsQueueOptions> SqSQueueList { get; set; }
+        public bool UseDynamoDb { get; set; }
+        public bool DisableDynamoDbRetry { get; set; }
         public Credentials Credentials { get; set; }
     }
 }

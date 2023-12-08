@@ -10,11 +10,11 @@ namespace Devon4Net.Infrastructure.AWS.Common.Managers.SecretsManager
 {
     public class AwsSecretsConfigurationProvider : ConfigurationProvider, IDisposable
     {
-        private IAwsSecretsHandler AwsSecretsHandler { get;}
+        private IAwsSecretsHandler AwsSecretsHandler { get; }
 
         public AwsSecretsConfigurationProvider(AWSCredentials awsCredentials = null, RegionEndpoint regionEndpoint = null)
         {
-            AwsSecretsHandler = new AwsSecretsHandler(awsCredentials,regionEndpoint);
+            AwsSecretsHandler = new AwsSecretsHandler(awsCredentials, regionEndpoint);
         }
         public override void Load()
         {

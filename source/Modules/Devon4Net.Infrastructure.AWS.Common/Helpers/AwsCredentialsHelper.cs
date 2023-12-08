@@ -1,8 +1,8 @@
-﻿using Amazon.Runtime.CredentialManagement;
+﻿using Amazon;
 using Amazon.Runtime;
-using Devon4Net.Infrastructure.AWS.Common.Options;
-using Amazon;
+using Amazon.Runtime.CredentialManagement;
 using Devon4Net.Infrastructure.AWS.Common.Constants;
+using Devon4Net.Infrastructure.AWS.Common.Options;
 using Devon4Net.Infrastructure.Common;
 
 namespace Devon4Net.Infrastructure.AWS.Common.Helpers
@@ -10,7 +10,7 @@ namespace Devon4Net.Infrastructure.AWS.Common.Helpers
     public class AwsCredentialsHelper
     {
         private AwsOptions AwsOptions { get; set; }
-        public AwsCredentialsHelper(AwsOptions awsOptions) 
+        public AwsCredentialsHelper(AwsOptions awsOptions)
         {
             if (awsOptions == null)
             {
@@ -24,18 +24,18 @@ namespace Devon4Net.Infrastructure.AWS.Common.Helpers
         {
             try
             {
-                AWSCredentials credentials;
+                AWSCredentials credentials = null;
                 if (!string.IsNullOrEmpty(AwsOptions?.Credentials?.AccessKeyId) && !string.IsNullOrEmpty(AwsOptions?.Credentials?.SecretAccessKey))
                 {
                     credentials = new BasicAWSCredentials(AwsOptions?.Credentials?.AccessKeyId, AwsOptions?.Credentials?.SecretAccessKey);
                 }
-                else
+                else if (!string.IsNullOrWhiteSpace(AwsOptions?.Credentials?.Profile))
                 {
                     var profileName = string.IsNullOrWhiteSpace(AwsOptions?.Credentials?.Profile) ? Environment.GetEnvironmentVariable(AwsConstants.AWS_PROFILE) : AwsOptions.Credentials.Profile;
                     GetCredentialsFromProfileName(profileName, out credentials);
                 }
 
-                return credentials;
+                return credentials ?? FallbackCredentialsFactory.GetCredentials();
             }
             catch (Exception ex)
             {
@@ -49,13 +49,20 @@ namespace Devon4Net.Infrastructure.AWS.Common.Helpers
             CheckProfileName(profileName);
 
             var sharedFile = new SharedCredentialsFile();
-            sharedFile.TryGetProfile(profileName, out var profile);
-            AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out credentials);
+            var profileExists = sharedFile.TryGetProfile(profileName, out var profile);
+            if (profileExists)
+            {
+                AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out credentials);
+            }
+            else
+            {
+                credentials = null;
+            }
         }
 
         private static void CheckProfileName(string profileName)
         {
-            if (!string.IsNullOrEmpty(profileName)) return; 
+            if (!string.IsNullOrEmpty(profileName)) return;
 
             const string profileErrorMessage = "There is no defined AWS profile to be loaded";
             Devon4NetLogger.Error(profileErrorMessage);
